@@ -1,0 +1,25 @@
+{
+    "folders": [
+        {
+            "name": "ai-clean-chat",
+            "path": "."
+        },
+        {
+            "name": "frontend",
+            "path": "frontend"
+        },
+        {
+            "name": "backend",
+            "path": "backend"
+        },
+        {
+            "name": "ai",
+            "path": "ai"
+        },
+        {
+            "name": "design",
+            "path": "design"
+        }
+    ],
+    "settings": {}
+}
