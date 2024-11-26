@@ -1,0 +1,15 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "faster-whisper>=1.1.0",
+]
+
+[dependency-groups]
+dev = [
+    "isort>=5.13.2",
+    "ruff>=0.8.0",
+]
