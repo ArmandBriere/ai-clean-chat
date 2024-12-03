@@ -1,0 +1,26 @@
+services:
+
+  nginx:
+    build:
+      context: ./nginx
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend/
+    environment:
+      - PORT=8080
+    ports:
+      - "8081:8080"
+    restart: unless-stopped
