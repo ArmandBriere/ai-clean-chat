@@ -1,17 +1,28 @@
 # Step 1: Build the application
-FROM oven/bun AS builder
+FROM oven/bun AS deps
 
 # Set the working directory in the container
 WORKDIR /app
 
 # Copy all the application files to the container
-COPY . .
+COPY package.json .
+COPY bun.* .
 
 # Install dependencies and build the application
 RUN bun i
+
+# Step 2: Build the bun application
+FROM oven/bun AS builder
+
+# Set the working directory for the builder container
+WORKDIR /app
+
+COPY --from=deps /app /app
+COPY . .
+
 RUN bun run build
 
-# Step 2: Create a smaller image for running the application
+# Step 3: Create a smaller image for running the application
 FROM oven/bun
 
 # Set the working directory for the runtime container
@@ -26,4 +37,4 @@ COPY --from=builder /app/bun.lockb ./bun.lockb
 EXPOSE 3000
 
 # Start the application
-CMD ["bun", "run", "preview"]
+CMD ["bun", "run", "dev", "--host", "0.0.0.0", "--port", "3000"]
