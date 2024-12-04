@@ -1,40 +1,21 @@
-# Step 1: Build the application
-FROM oven/bun AS deps
+# use the official Bun image
+# see all versions at https://hub.docker.com/r/oven/bun/tags
+FROM oven/bun:1 AS base
+WORKDIR /usr/src/app
 
-# Set the working directory in the container
-WORKDIR /app
+# install dependencies into temp directory
+# this will cache them and speed up future builds
+FROM base AS install
+RUN mkdir -p /temp/dev
+COPY package.json bun.lockb /temp/dev/
+RUN cd /temp/dev && bun install
 
-# Copy all the application files to the container
-COPY package.json .
-COPY bun.* .
-
-# Install dependencies and build the application
-RUN bun i
-
-# Step 2: Build the bun application
-FROM oven/bun AS builder
-
-# Set the working directory for the builder container
-WORKDIR /app
-
-COPY --from=deps /app /app
+# copy node_modules from temp directory
+# then copy all (non-ignored) project files into the image
+FROM base AS prerelease
+COPY --from=install /temp/dev/node_modules node_modules
 COPY . .
 
-RUN bun run build
-
-# Step 3: Create a smaller image for running the application
-FROM oven/bun
-
-# Set the working directory for the runtime container
-WORKDIR /app
-
-# Copy the production build and required files
-COPY --from=builder /app/.svelte-kit ./build
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/bun.lockb ./bun.lockb
-
-# Expose the port the application will run on
-EXPOSE 3000
-
-# Start the application
-CMD ["bun", "run", "dev", "--host", "0.0.0.0", "--port", "3000"]
+# run the app
+EXPOSE 3000/tcp
+ENTRYPOINT [ "bun", "dev" ]
