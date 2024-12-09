@@ -3,21 +3,10 @@ package server
 import (
 	"log"
 	"math/rand"
-	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
 )
-
-type Participant struct {
-	Host bool
-	Conn *websocket.Conn
-}
-
-type RoomMap struct {
-	Mutex sync.RWMutex
-	Map   map[string][]Participant
-}
 
 func (r *RoomMap) Init() {
 	r.Map = make(map[string][]Participant)
@@ -33,8 +22,7 @@ func (r *RoomMap) Get(roomID string) []Participant {
 func (r *RoomMap) CreateRoom() string {
 	r.Mutex.Lock()
 	defer r.Mutex.Unlock()
-
-	rand.Seed(time.Now().UnixNano())
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
 	b := make([]rune, 8)
 
