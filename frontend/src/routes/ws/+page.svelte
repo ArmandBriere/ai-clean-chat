@@ -126,27 +126,15 @@
 	}
 </script>
 
-<div>
+<div class="justify-center text-center">
 	{#if userId}
-		<div class="userId">
+		<div class="m-4 p-4 bg-[darkgray] rounded">
 			<p>
 				{userId}
 			</p>
 		</div>
 	{/if}
-	<div class="startWebRTC">
+	<div class="m-4 p-4 bg-[darkgray] rounded">
 		<button on:click={startStreaming} aria-label="Start WebRTC">Start WebRTC</button>
 	</div>
 </div>
-
-<style>
-	.userId,
-	.startWebRTC {
-		margin: 1rem;
-		background-color: darkgray;
-		padding: 1rem;
-		border-radius: 5px;
-		justify-content: center;
-		text-align: center;
-	}
-</style>
