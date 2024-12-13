@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { v4 as uuidv4 } from 'uuid';
 
 	let ws: WebSocket | null = null;
@@ -7,14 +7,12 @@
 	let localStream: MediaStream | null = null;
 	let userId: string = uuidv4();
 
-	let count = 0;
-
-	function counter() {
-		count += 1;
-	}
-
 	onMount(async () => {
 		startConnection();
+	});
+
+	onDestroy(() => {
+		cleanup();
 	});
 
 	async function startConnection() {
@@ -103,7 +101,9 @@
 		}
 	}
 
-	async function startStreaming() {}
+	async function startStreaming() {
+		// Add code to start streaming and stop it on demand
+	}
 
 	function restartConnection() {
 		cleanup();
