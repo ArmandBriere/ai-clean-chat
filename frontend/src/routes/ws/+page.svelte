@@ -7,6 +7,8 @@
 	let localStream: MediaStream | null = null;
 	let userId: string = uuidv4();
 
+	let isStreaming = false;
+
 	onMount(async () => {
 		startConnection();
 	});
@@ -32,7 +34,11 @@
 
 					pc.onicecandidate = (event) => {
 						if (event.candidate) {
-							ws?.send(JSON.stringify({ type: 'iceCandidate', candidate: event.candidate }));
+							let answer: IceCandidateMessage = {
+								type: 'iceCandidate',
+								candidate: event.candidate
+							};
+							ws?.send(JSON.stringify(answer));
 						}
 					};
 
@@ -45,9 +51,16 @@
 						}
 					};
 
-					const offer = await pc.createOffer();
-					await pc.setLocalDescription(offer);
-					ws?.send(JSON.stringify({ type: 'offer', sdp: offer.sdp }));
+					const offerDescription = await pc.createOffer();
+					await pc.setLocalDescription(offerDescription);
+
+					if (offerDescription.sdp) {
+						let offer: OfferMessage = {
+							type: 'offer',
+							sdp: offerDescription.sdp
+						};
+						ws?.send(JSON.stringify(offer));
+					}
 				} catch (getUserMediaError) {
 					console.error('Error getting user media:', getUserMediaError);
 					cleanup();
@@ -60,7 +73,11 @@
 				ws.onmessage = async (event) => {
 					const message = JSON.parse(event.data);
 					if (message.type === 'answer') {
-						const remoteDesc = new RTCSessionDescription({ type: 'answer', sdp: message.sdp });
+						let answer: AnswerMessage = {
+							type: 'answer',
+							sdp: message.sdp
+						};
+						const remoteDesc = new RTCSessionDescription(answer);
 						try {
 							await pc?.setRemoteDescription(remoteDesc);
 						} catch (setRemoteDescError) {
@@ -102,7 +119,16 @@
 	}
 
 	async function startStreaming() {
-		// Add code to start streaming and stop it on demand
+		if (ws) {
+			isStreaming = !isStreaming;
+			let message: StreamingMessage = {
+				type: 'streaming',
+				isStreaming: isStreaming
+			};
+			ws.send(JSON.stringify(message));
+		} else {
+			console.error('WebSocket not connected');
+		}
 	}
 
 	function restartConnection() {
