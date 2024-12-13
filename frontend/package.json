@@ -1,18 +1,6 @@
 {
 	"name": "frontend",
 	"version": "0.0.1",
-	"type": "module",
-	"scripts": {
-		"dev": "bunx --bun vite dev --port 3000 --host 0.0.0.0",
-		"build": "vite build",
-		"preview": "vite preview --port 3000 --host 0.0.0.0",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"format": "prettier --write .",
-		"lint": "prettier --check .",
-		"test:unit": "vitest",
-		"test": "npm run test:unit -- --run"
-	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^3.0.0",
 		"@sveltejs/kit": "^2.0.0",
@@ -28,6 +16,18 @@
 		"vite": "^5.0.3",
 		"vitest": "^2.0.4"
 	},
+	"scripts": {
+		"dev": "bunx --bun vite dev --port 3000 --host 0.0.0.0",
+		"build": "vite build",
+		"preview": "vite preview --port 3000 --host 0.0.0.0",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"format": "prettier --write .",
+		"lint": "prettier --check .",
+		"test:unit": "vitest",
+		"test": "npm run test:unit -- --run"
+	},
+	"type": "module",
 	"dependencies": {
 		"uuid": "^11.0.3"
 	}
