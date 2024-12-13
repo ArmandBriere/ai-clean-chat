@@ -264,3 +264,9 @@ pyrightconfig.json
 
 # Data folder
 data/
+
+# Generated files
+*.ogg
+
+# Air tmp folder
+tmp/
