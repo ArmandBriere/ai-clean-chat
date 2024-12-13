@@ -20,10 +20,10 @@
 	const day = date.getDate().toString();
 </script>
 
-<div class="flex flex-col h-svh">
+<div class="flex h-svh flex-col">
 	<header>
 		<!-- wrapper -->
-		<div class="w-full flex justify-between p-8">
+		<div class="flex w-full justify-between p-8">
 			<!-- left nav -->
 			<div>Logo Oseadea Confoo</div>
 			<!-- right nav -->
