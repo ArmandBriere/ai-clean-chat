@@ -1,17 +1,22 @@
-FROM golang:1.23 
+FROM golang:1.23-alpine AS builder
 
-
-WORKDIR /usr/src/app
+WORKDIR /app
 
 # pre-copy/cache go.mod for pre-downloading dependencies and only redownloading them in subsequent builds if they change
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 
 COPY . .
-RUN go build -v -o /usr/local/bin/app ./
+RUN go install github.com/air-verse/air@latest
 
-# Expose port
+
+FROM golang:1.23-alpine
+
+WORKDIR /app
+
+COPY --from=builder /go/bin/air /usr/local/bin/air
+COPY --from=builder /app .
+
 EXPOSE 8080
-ENV PORT=8080
 
-CMD ["app"]
+CMD ["air"]
