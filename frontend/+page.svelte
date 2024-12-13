@@ -1,6 +1,6 @@
 ```svelte
 
 <main>
-	<h1>WebRTC Audio</h1>
+  <h1>WebRTC Audio</h1>
 </main>
 ```
