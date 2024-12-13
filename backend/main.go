@@ -7,6 +7,7 @@ import (
 	"os"
 
 	server "profanity.com/server"
+	webrtcServer "profanity.com/webrtcServer"
 )
 
 func health(w http.ResponseWriter, r *http.Request) {
@@ -15,17 +16,21 @@ func health(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	var allRooms server.RoomMap
+	allRooms.Init()
 
 	port := os.Getenv("PORT")
-
-	allRooms.Init()
+	if port == "" {
+		port = "8080"
+	}
 
 	http.HandleFunc("/health", health)
 	http.HandleFunc("/create", server.CreateRoomRequestHandler)
 	http.HandleFunc("/join", server.JoinRoomRequestHandler)
 
-	log.Println("starting Server on  Port " + port)
-	fmt.Println(" ")
+	webrtcServer.AddWebRTCHandle()
+
+	log.Println("starting Server on port " + port)
+
 	err := http.ListenAndServe(":"+port, nil)
 
 	if err != nil {

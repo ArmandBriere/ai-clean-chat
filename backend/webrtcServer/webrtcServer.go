@@ -1,224 +1,192 @@
 package webrtcserver
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
+	"net/http"
 	"os"
-	"strings"
+	"time"
 
-	"github.com/pion/interceptor"
+	"github.com/gorilla/websocket"
 	"github.com/pion/webrtc/v4"
-	"github.com/pion/webrtc/v4/pkg/media"
 	"github.com/pion/webrtc/v4/pkg/media/oggwriter"
 )
 
-// Create the MediaEngine
-var m = &webrtc.MediaEngine{}
-
-// NewWebRTCServer creates a new WebRTC server and start listening
-func NewWebRTCServer(messageChan chan string) {
-	// Create a MediaEngine object to configure the supported codec
-
-	// Register the VP8 and Opus codecs
-	registerCodecs(m)
-
-	// Register the default interceptor for audio
-	localInterceptor := registerInterceptor(m)
-
-	// Create a new OggWriter
-	oggFile := getOggFile("output.ogg")
-
-	// Setup the PeerConnection
-	peerConnection := setupPeerConnection(localInterceptor, oggFile)
-
-	// Listen for messages from the frontend
-	listenForWebsocketMessage(messageChan, peerConnection)
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool { return true }, // For development, REMOVE IN PRODUCTION
 }
 
-// encode returns a base64 JSON of a SessionDescription
-func encode(obj *webrtc.SessionDescription) string {
-	b, err := json.Marshal(obj)
+var peerConnections = make(map[*websocket.Conn]*webrtc.PeerConnection)
+
+// AddWebRTCHandle starts the WebRTC server
+func AddWebRTCHandle() {
+	http.HandleFunc("/ws", handleWebSocket)
+}
+
+// handleWebSocket handles incoming WebRTC connections
+func handleWebSocket(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		panic(err)
+		slog.Error("WebSocket connection upgrade failed", "Error", err)
+		return
+	}
+	defer conn.Close()
+
+	mediaEngine := webrtc.MediaEngine{}
+	if err := mediaEngine.RegisterDefaultCodecs(); err != nil {
+		slog.Error("Codec register failed", "Error", err)
+		return
 	}
 
-	return base64.StdEncoding.EncodeToString(b)
-}
+	api := webrtc.NewAPI(webrtc.WithMediaEngine(&mediaEngine))
 
-// decode a base64 and unmarshal JSON into a SessionDescription
-func decode(in string, obj *webrtc.SessionDescription) {
-	b, err := base64.StdEncoding.DecodeString(in)
+	peerConnection, err := api.NewPeerConnection(webrtc.Configuration{})
 	if err != nil {
-		panic(err)
+		slog.Error("New peer connection failed", "Error", err)
+		return
 	}
+	peerConnections[conn] = peerConnection
+	defer delete(peerConnections, conn)
+	defer peerConnection.Close()
 
-	if err = json.Unmarshal(b, obj); err != nil {
-		panic(err)
-	}
-}
-
-// getOggFile creates a new OggWriter
-func getOggFile(fileName string) *oggwriter.OggWriter {
-	oggFile, err := oggwriter.New(fileName, 48000, 2)
+	audioTrack, err := webrtc.NewTrackLocalStaticRTP(webrtc.RTPCodecCapability{MimeType: webrtc.MimeTypeOpus}, "audio", "pion")
 	if err != nil {
-		panic(err)
+		slog.Error("New audio track failed", "Error", err)
+		return
 	}
-	return oggFile
-}
 
-// saveToDisk copies data from a webrtc.TrackRemote and writes it to disk.
-func saveToDisk(i media.Writer, track *webrtc.TrackRemote) {
-	defer func() {
-		if err := i.Close(); err != nil {
-			panic(err)
+	rtpSender, err := peerConnection.AddTrack(audioTrack)
+	if err != nil {
+		slog.Error("Adding track failed", "Error", err)
+		return
+	}
+
+	go func() {
+		rtpBuf := make([]byte, 1500)
+		for {
+			_, _, readErr := rtpSender.Read(rtpBuf)
+			if readErr != nil {
+				return
+			}
 		}
 	}()
 
-	for {
-		rtpPacket, _, err := track.ReadRTP()
-		if err != nil {
-			fmt.Println(err)
+	peerConnection.OnICECandidate(func(i *webrtc.ICECandidate) {
+		if i == nil {
 			return
 		}
-		if err := i.WriteRTP(rtpPacket); err != nil {
-			fmt.Println(err)
+
+		candidate, err := json.Marshal(i.ToJSON())
+		if err != nil {
+			slog.Error("JSON marshal error", "Error", err)
 			return
 		}
-	}
-}
 
-// registerInterceptor registers a intervalpli interceptor with the MediaEngine.
-func registerInterceptor(m *webrtc.MediaEngine) *interceptor.Registry {
-	interceptor := &interceptor.Registry{}
-
-	// Use the default set of Interceptors
-	err := webrtc.RegisterDefaultInterceptors(m, interceptor)
-	if err != nil {
-		panic(err)
-	}
-
-	return interceptor
-}
-
-// Setup the PeerConnection
-func setupPeerConnection(localInterceptor *interceptor.Registry, oggFile *oggwriter.OggWriter) *webrtc.PeerConnection {
-	// Create the API object with the MediaEngine
-	api := webrtc.NewAPI(webrtc.WithMediaEngine(m), webrtc.WithInterceptorRegistry(localInterceptor))
-
-	// Prepare the configuration
-	config := webrtc.Configuration{
-		ICEServers: []webrtc.ICEServer{
-			{
-				URLs: []string{"stun:stun.l.google.com:19302"},
-			},
-		},
-	}
-
-	// Create a new RTCPeerConnection
-	peerConnection, err := api.NewPeerConnection(config)
-	if err != nil {
-		panic(err)
-	}
-
-	// Allow us to receive 1 audio track
-	if _, err = peerConnection.AddTransceiverFromKind(webrtc.RTPCodecTypeAudio); err != nil {
-		panic(err)
-	}
-
-	// Set a handler for when a new remote track starts, this handler saves buffers to disk as
-	// an ivf file, since we could have multiple video tracks we provide a counter.
-	// In your application this is where you would handle/process video
-	peerConnection.OnTrack(func(track *webrtc.TrackRemote, receiver *webrtc.RTPReceiver) { //nolint: revive
-		onTrack(track, oggFile)
+		if err := conn.WriteJSON(map[string]interface{}{"type": "iceCandidate", "candidate": string(candidate)}); err != nil {
+			slog.Error("Writing iceCandidate failed", "Error", err)
+			return
+		}
 	})
 
-	// Set the handler for ICE connection state
-	// This will notify you when the peer has connected/disconnected
-	peerConnection.OnICEConnectionStateChange(func(connectionState webrtc.ICEConnectionState) {
-		onICEConnectionStateChange(connectionState, oggFile, peerConnection)
+	peerConnection.OnTrack(func(track *webrtc.TrackRemote, receiver *webrtc.RTPReceiver) {
+		codecName := track.Codec().MimeType
+		slog.Info("Got track, codec", "codecName", codecName)
+
+		if codecName == webrtc.MimeTypeOpus {
+			slog.Info("Track has started")
+			go func() {
+				filename := fmt.Sprintf("audio_%d.ogg", time.Now().UnixNano())
+				f, err := os.Create(filename)
+				if err != nil {
+					slog.Error("Error creating file", "Error", err)
+					return
+				}
+				defer f.Close()
+
+				// Create an OggWriter
+				writer, err := oggwriter.New(filename, 48000, 2)
+				if err != nil {
+					slog.Error("Error creating oggwriter", "Error", err)
+					return
+				}
+				defer writer.Close()
+
+				for {
+					rtpPacket, _, err := track.ReadRTP()
+					if err != nil {
+						slog.Error("rtpPacket setup", "Error", err)
+						return
+					}
+					if err := writer.WriteRTP(rtpPacket); err != nil {
+						slog.Error("write RTP", "Error", err)
+						return
+					}
+				}
+			}()
+		}
 	})
 
-	return peerConnection
-}
-
-// onICEConnectionStateChange is called when the ICE connection state changes
-func onICEConnectionStateChange(connectionState webrtc.ICEConnectionState, oggFile *oggwriter.OggWriter, peerConnection *webrtc.PeerConnection) {
-	fmt.Printf("Connection State has changed %s \n", connectionState.String())
-
-	if connectionState == webrtc.ICEConnectionStateConnected {
-		fmt.Println("Ctrl+C the remote client to stop the demo")
-	} else if connectionState == webrtc.ICEConnectionStateFailed || connectionState == webrtc.ICEConnectionStateClosed {
-		if closeErr := oggFile.Close(); closeErr != nil {
-			panic(closeErr)
-		}
-		fmt.Println("Done writing media files")
-
-		if closeErr := peerConnection.Close(); closeErr != nil {
-			panic(closeErr)
-		}
-
-		// TODO: Handle user disconnection that currently causes the server to exit
-		os.Exit(0)
-	}
-}
-
-// registerCodecs adds Opus codecs to the MediaEngine
-func registerCodecs(m *webrtc.MediaEngine) {
-	if err := m.RegisterCodec(webrtc.RTPCodecParameters{
-		RTPCodecCapability: webrtc.RTPCodecCapability{MimeType: webrtc.MimeTypeOpus, ClockRate: 48000, Channels: 0, SDPFmtpLine: "", RTCPFeedback: nil},
-		PayloadType:        111,
-	}, webrtc.RTPCodecTypeAudio); err != nil {
-		panic(err)
-	}
-}
-
-// onTrack is called when a new track is added
-func onTrack(track *webrtc.TrackRemote, oggFile *oggwriter.OggWriter) {
-	codec := track.Codec()
-	if strings.EqualFold(codec.MimeType, webrtc.MimeTypeOpus) {
-		fmt.Println("Got Opus track, saving to disk as output.opus (48 kHz, 2 channels)")
-		saveToDisk(oggFile, track)
-	}
-}
-
-// listenForWebsocketMessage listens for messages from the frontend and sends them to the peer connection
-func listenForWebsocketMessage(messageChan chan string, peerConnection *webrtc.PeerConnection) {
 	for {
-		msg := <-messageChan
-		log.Println("Received message:", msg)
-
-		offer := webrtc.SessionDescription{}
-		decode(msg, &offer)
-
-		log.Println("Received offer from remote peer")
-		log.Println(offer)
-		err := peerConnection.SetRemoteDescription(offer)
+		_, message, err := conn.ReadMessage()
 		if err != nil {
-			panic(err)
+			slog.Error("Read message error", "error", err)
+			break
 		}
 
-		answer := generateICEAnswer(peerConnection)
-		messageChan <- answer
+		var msg map[string]interface{}
+		if err := json.Unmarshal(message, &msg); err != nil {
+			slog.Error("JSON marshal error", "Error", err)
+			continue
+		}
+
+		switch msg["type"] {
+		case "offer":
+			sdp := msg["sdp"].(string)
+			offer := webrtc.SessionDescription{Type: webrtc.SDPTypeOffer, SDP: sdp}
+			if err := peerConnection.SetRemoteDescription(offer); err != nil {
+				slog.Error("Error setting remote description", "error", err)
+				continue
+			}
+
+			answer, err := peerConnection.CreateAnswer(nil)
+			if err != nil {
+				slog.Error("Error creating the answer", "error", err)
+				continue
+			}
+
+			if err := peerConnection.SetLocalDescription(answer); err != nil {
+				slog.Error("Error setting local description", "error", err)
+				continue
+			}
+
+			if err := conn.WriteJSON(map[string]interface{}{"type": "answer", "sdp": answer.SDP}); err != nil {
+				slog.Error("Error writing answer", "error", err)
+				continue
+			}
+		case "iceCandidate":
+			candidateData, ok := msg["candidate"].(map[string]interface{})
+			if !ok {
+				slog.Error("Invalid ICE candidate format", "candidate", msg["candidate"])
+				continue
+			}
+
+			candidateBytes, err := json.Marshal(candidateData)
+			if err != nil {
+				slog.Error("Failed to marshal candidate data", "error", err)
+				continue
+			}
+
+			var candidate webrtc.ICECandidateInit
+			if err := json.Unmarshal(candidateBytes, &candidate); err != nil {
+				slog.Error("Failed to unmarshal candidate:", "error", err)
+				continue
+			}
+
+			if err := peerConnection.AddICECandidate(candidate); err != nil {
+				slog.Error("Error adding ICE candidate:", "error", err)
+				continue
+			}
+		}
 	}
-}
-
-// generateICEAnswer generates an ICE answer
-func generateICEAnswer(peerConnection *webrtc.PeerConnection) string {
-	answer, err := peerConnection.CreateAnswer(nil)
-	if err != nil {
-		panic(err)
-	}
-
-	gatherComplete := webrtc.GatheringCompletePromise(peerConnection)
-
-	err = peerConnection.SetLocalDescription(answer)
-	if err != nil {
-		panic(err)
-	}
-
-	<-gatherComplete
-
-	return encode(peerConnection.LocalDescription())
 }

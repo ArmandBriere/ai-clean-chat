@@ -5,6 +5,10 @@
             "path": "."
         },
         {
+            "name": ".github",
+            "path": ".github"
+        },
+        {
             "name": "frontend",
             "path": "frontend"
         },
