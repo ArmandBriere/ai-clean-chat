@@ -1,152 +1,166 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
-	import { v4 as uuidv4 } from 'uuid';
+  import { onMount, onDestroy } from 'svelte';
+  import { v4 as uuidv4 } from 'uuid';
 
-	let ws: WebSocket | null = null;
-	let pc: RTCPeerConnection | null = null;
-	let localStream: MediaStream | null = null;
-	let userId: string = uuidv4();
+  let ws: WebSocket | null = null;
+  let pc: RTCPeerConnection | null = null;
+  let localStream: MediaStream | null = null;
+  let userId: string = uuidv4();
 
-	onMount(async () => {
-		startConnection();
-	});
+  let isStreaming = false;
 
-	onDestroy(() => {
-		cleanup();
-	});
+  onMount(async () => {
+    startConnection();
+  });
 
-	async function startConnection() {
-		try {
-			ws = new WebSocket(`ws://localhost:8081/ws`);
+  onDestroy(() => {
+    cleanup();
+  });
 
-			ws.onopen = async () => {
-				console.log('WebSocket connected');
+  async function startConnection() {
+    try {
+      ws = new WebSocket(`ws://localhost:8081/ws`);
 
-				try {
-					pc = new RTCPeerConnection();
+      ws.onopen = async () => {
+        console.log('WebSocket connected');
 
-					localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-					if (localStream) {
-						localStream.getTracks().forEach((track) => pc?.addTrack(track));
-					}
+        try {
+          pc = new RTCPeerConnection();
 
-					pc.onicecandidate = (event) => {
-						if (event.candidate) {
-							ws?.send(JSON.stringify({ type: 'iceCandidate', candidate: event.candidate }));
-						}
-					};
+          localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          if (localStream) {
+            localStream.getTracks().forEach((track) => pc?.addTrack(track));
+          }
 
-					pc.onconnectionstatechange = async () => {};
+          pc.onicecandidate = (event) => {
+            if (event.candidate) {
+              let answer: IceCandidateMessage = {
+                type: 'iceCandidate',
+                candidate: event.candidate
+              };
+              ws?.send(JSON.stringify(answer));
+            }
+          };
 
-					pc.oniceconnectionstatechange = () => {
-						if (pc?.iceConnectionState === 'failed') {
-							console.log('ICE connection failed, restarting');
-							restartConnection();
-						}
-					};
+          pc.onconnectionstatechange = async () => {};
 
-					const offer = await pc.createOffer();
-					await pc.setLocalDescription(offer);
-					ws?.send(JSON.stringify({ type: 'offer', sdp: offer.sdp }));
-				} catch (getUserMediaError) {
-					console.error('Error getting user media:', getUserMediaError);
-					cleanup();
-					return; // Important: Exit the onopen handler if getUserMedia fails
-				}
+          pc.oniceconnectionstatechange = () => {
+            if (pc?.iceConnectionState === 'failed') {
+              console.log('ICE connection failed, restarting');
+              restartConnection();
+            }
+          };
 
-				if (!ws) {
-					return;
-				}
-				ws.onmessage = async (event) => {
-					const message = JSON.parse(event.data);
-					if (message.type === 'answer') {
-						const remoteDesc = new RTCSessionDescription({ type: 'answer', sdp: message.sdp });
-						try {
-							await pc?.setRemoteDescription(remoteDesc);
-						} catch (setRemoteDescError) {
-							console.error('Error setting remote description:', setRemoteDescError);
-							cleanup();
-						}
-					} else if (message.type === 'iceCandidate') {
-						try {
-							if (message.candidate) {
-								// Correctly parse the JSON string to an object
-								const candidate = JSON.parse(message.candidate);
-								await pc?.addIceCandidate(new RTCIceCandidate(candidate));
-							}
-						} catch (e) {
-							console.error('Error adding ICE candidate:', e);
-						}
-					}
-				};
+          const offerDescription = await pc.createOffer();
+          await pc.setLocalDescription(offerDescription);
 
-				ws.onclose = () => {
-					console.log('WebSocket closed');
-					cleanup();
-				};
+          if (offerDescription.sdp) {
+            let offer: OfferMessage = {
+              type: 'offer',
+              sdp: offerDescription.sdp
+            };
+            ws?.send(JSON.stringify(offer));
+          }
+        } catch (getUserMediaError) {
+          console.error('Error getting user media:', getUserMediaError);
+          cleanup();
+          return; // Important: Exit the onopen handler if getUserMedia fails
+        }
 
-				ws.onerror = (error) => {
-					console.error('WebSocket error:', error);
-					cleanup();
-				};
-			};
+        if (!ws) {
+          return;
+        }
+        ws.onmessage = async (event) => {
+          const message = JSON.parse(event.data);
+          if (message.type === 'answer') {
+            let answer: AnswerMessage = {
+              type: 'answer',
+              sdp: message.sdp
+            };
+            const remoteDesc = new RTCSessionDescription(answer);
+            try {
+              await pc?.setRemoteDescription(remoteDesc);
+            } catch (setRemoteDescError) {
+              console.error('Error setting remote description:', setRemoteDescError);
+              cleanup();
+            }
+          } else if (message.type === 'iceCandidate') {
+            try {
+              if (message.candidate) {
+                // Correctly parse the JSON string to an object
+                const candidate = JSON.parse(message.candidate);
+                await pc?.addIceCandidate(new RTCIceCandidate(candidate));
+              }
+            } catch (e) {
+              console.error('Error adding ICE candidate:', e);
+            }
+          }
+        };
 
-			ws.onerror = (error) => {
-				console.error('WebSocket connection error:', error);
-				cleanup();
-			};
-		} catch (error) {
-			console.error('Error starting connection:', error);
-			cleanup();
-		}
-	}
+        ws.onclose = () => {
+          console.log('WebSocket closed');
+          cleanup();
+        };
 
-	async function startStreaming() {
-		// Add code to start streaming and stop it on demand
-	}
+        ws.onerror = (error) => {
+          console.error('WebSocket error:', error);
+          cleanup();
+        };
+      };
 
-	function restartConnection() {
-		cleanup();
-		startConnection();
-	}
+      ws.onerror = (error) => {
+        console.error('WebSocket connection error:', error);
+        cleanup();
+      };
+    } catch (error) {
+      console.error('Error starting connection:', error);
+      cleanup();
+    }
+  }
 
-	function cleanup() {
-		if (ws) {
-			ws.close();
-			ws = null;
-		}
-		if (pc) {
-			pc.close();
-			pc = null;
-		}
-		if (localStream) {
-			localStream.getTracks().forEach((track) => track.stop());
-			localStream = null;
-		}
-	}
+  async function startStreaming() {
+    if (ws) {
+      isStreaming = !isStreaming;
+      let message: StreamingMessage = {
+        type: 'streaming',
+        isStreaming: isStreaming
+      };
+      ws.send(JSON.stringify(message));
+    } else {
+      console.error('WebSocket not connected');
+    }
+  }
+
+  function restartConnection() {
+    cleanup();
+    startConnection();
+  }
+
+  function cleanup() {
+    if (ws) {
+      ws.close();
+      ws = null;
+    }
+    if (pc) {
+      pc.close();
+      pc = null;
+    }
+    if (localStream) {
+      localStream.getTracks().forEach((track) => track.stop());
+      localStream = null;
+    }
+  }
 </script>
 
-<div>
-	{#if userId}
-		<div class="userId">
-			<p>
-				{userId}
-			</p>
-		</div>
-	{/if}
-	<div class="startWebRTC">
-		<button on:click={startStreaming} aria-label="Start WebRTC">Start WebRTC</button>
-	</div>
+<div class="justify-center text-center">
+  {#if userId}
+    <div class="m-4 p-4 bg-[darkgray] rounded">
+      <p>
+        {userId}
+      </p>
+    </div>
+  {/if}
+  <div class="m-4 p-4 bg-[darkgray] rounded">
+    <button on:click={startStreaming} aria-label="Start WebRTC">Start WebRTC</button>
+  </div>
 </div>
-
-<style>
-	.userId,
-	.startWebRTC {
-		margin: 1rem;
-		background-color: darkgray;
-		padding: 1rem;
-		border-radius: 5px;
-		justify-content: center;
-		text-align: center;
-	}
-</style>

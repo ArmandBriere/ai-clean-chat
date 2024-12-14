@@ -2,15 +2,11 @@ package webrtcserver
 
 import (
 	"encoding/json"
-	"fmt"
 	"log/slog"
 	"net/http"
-	"os"
-	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/pion/webrtc/v4"
-	"github.com/pion/webrtc/v4/pkg/media/oggwriter"
 )
 
 var upgrader = websocket.Upgrader{
@@ -89,41 +85,15 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		}
 	})
 
+	isStreaming := false
+
 	peerConnection.OnTrack(func(track *webrtc.TrackRemote, receiver *webrtc.RTPReceiver) {
 		codecName := track.Codec().MimeType
 		slog.Info("Got track, codec", "codecName", codecName)
 
 		if codecName == webrtc.MimeTypeOpus {
 			slog.Info("Track has started")
-			go func() {
-				filename := fmt.Sprintf("audio_%d.ogg", time.Now().UnixNano())
-				f, err := os.Create(filename)
-				if err != nil {
-					slog.Error("Error creating file", "Error", err)
-					return
-				}
-				defer f.Close()
-
-				// Create an OggWriter
-				writer, err := oggwriter.New(filename, 48000, 2)
-				if err != nil {
-					slog.Error("Error creating oggwriter", "Error", err)
-					return
-				}
-				defer writer.Close()
-
-				for {
-					rtpPacket, _, err := track.ReadRTP()
-					if err != nil {
-						slog.Error("rtpPacket setup", "Error", err)
-						return
-					}
-					if err := writer.WriteRTP(rtpPacket); err != nil {
-						slog.Error("write RTP", "Error", err)
-						return
-					}
-				}
-			}()
+			go handleAudioStream(track, &isStreaming)
 		}
 	})
 
@@ -134,59 +104,19 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		var msg map[string]interface{}
+		var msg WebSocketMessage
 		if err := json.Unmarshal(message, &msg); err != nil {
-			slog.Error("JSON marshal error", "Error", err)
+			slog.Error("JSON marshal error", "message", message, "error", err)
 			continue
 		}
 
-		switch msg["type"] {
+		switch msg.Type {
 		case "offer":
-			sdp := msg["sdp"].(string)
-			offer := webrtc.SessionDescription{Type: webrtc.SDPTypeOffer, SDP: sdp}
-			if err := peerConnection.SetRemoteDescription(offer); err != nil {
-				slog.Error("Error setting remote description", "error", err)
-				continue
-			}
-
-			answer, err := peerConnection.CreateAnswer(nil)
-			if err != nil {
-				slog.Error("Error creating the answer", "error", err)
-				continue
-			}
-
-			if err := peerConnection.SetLocalDescription(answer); err != nil {
-				slog.Error("Error setting local description", "error", err)
-				continue
-			}
-
-			if err := conn.WriteJSON(map[string]interface{}{"type": "answer", "sdp": answer.SDP}); err != nil {
-				slog.Error("Error writing answer", "error", err)
-				continue
-			}
+			parseOfferMessage(msg, peerConnection, conn)
 		case "iceCandidate":
-			candidateData, ok := msg["candidate"].(map[string]interface{})
-			if !ok {
-				slog.Error("Invalid ICE candidate format", "candidate", msg["candidate"])
-				continue
-			}
-
-			candidateBytes, err := json.Marshal(candidateData)
-			if err != nil {
-				slog.Error("Failed to marshal candidate data", "error", err)
-				continue
-			}
-
-			var candidate webrtc.ICECandidateInit
-			if err := json.Unmarshal(candidateBytes, &candidate); err != nil {
-				slog.Error("Failed to unmarshal candidate:", "error", err)
-				continue
-			}
-
-			if err := peerConnection.AddICECandidate(candidate); err != nil {
-				slog.Error("Error adding ICE candidate:", "error", err)
-				continue
-			}
+			parseIceCandidateMessage(msg, peerConnection)
+		case "streaming":
+			parseStreamingMessage(&isStreaming, msg)
 		}
 	}
 }
