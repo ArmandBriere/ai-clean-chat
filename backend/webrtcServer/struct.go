@@ -1,16 +1,13 @@
 package webrtcserver
 
-import "github.com/pion/webrtc/v4"
-
 type WebSocketMessage struct {
-	UserID           string `json:"userId"`
-	Target           string `json:"target"`
-	LocalDescription string `json:"localDescription,omitempty"`
+	Type      string `json:"type"`
+	SDP       string `json:"sdp"`
+	Candidate struct {
+		Candidate        string `json:"candidate"`
+		SdpMid           string `json:"sdpMid"`
+		SdpMLineIndex    int    `json:"sdpMLineIndex"`
+		UsernameFragment string `json:"usernameFragment"`
+	} `json:"candidate"`
+	IsStreaming bool `json:"isStreaming"`
 }
-
-type User struct {
-	UserID         string `json:"userId"`
-	PeerConnection *webrtc.PeerConnection
-}
-
-type UserMap map[string]*User
