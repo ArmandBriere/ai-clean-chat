@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Keyboard from 'svelte-material-icons/Keyboard.svelte';
+	import VideoPlusOutline from 'svelte-material-icons/VideoPlusOutline.svelte';
 </script>
 
 <div class="flex flex-grow">
@@ -13,8 +15,12 @@
 			</p>
 		</div>
 		<div class="flex w-full justify-center space-x-4">
-			<a href="/ws" class="rounded-sm bg-blue-600 px-4 py-2 text-white">New meeting</a>
-			<button class="rounded-sm px-4 py-2 shadow-md">Enter code</button>
+			<a href="/ws" class="flex items-center rounded bg-blue-600 px-4 py-2 text-white"
+				><VideoPlusOutline size="1.5rem" />New meeting</a
+			>
+			<button class="flex items-center rounded border px-4 py-2"
+				><Keyboard size="1.5rem" />Enter code</button
+			>
 			<button class="rounded-sm px-4 py-2">Join</button>
 		</div>
 	</div>
