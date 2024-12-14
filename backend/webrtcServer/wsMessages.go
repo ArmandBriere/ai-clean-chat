@@ -38,7 +38,7 @@ func parseOfferMessage(msg WebSocketMessage, peerConnection *webrtc.PeerConnecti
 // parseIceCandidateMessage parses the ICE candidate message
 func parseIceCandidateMessage(msg WebSocketMessage, peerConnection *webrtc.PeerConnection) {
 	candidateData := msg.Candidate
-	if candidateData == "" {
+	if candidateData.Candidate == "" {
 		slog.Error("No ICE candidate")
 		return
 	}

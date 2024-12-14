@@ -106,7 +106,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 		var msg WebSocketMessage
 		if err := json.Unmarshal(message, &msg); err != nil {
-			slog.Error("JSON marshal error", "Error", err)
+			slog.Error("JSON marshal error", "message", message, "error", err)
 			continue
 		}
 
