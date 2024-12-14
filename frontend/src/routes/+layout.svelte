@@ -31,7 +31,9 @@
 		</div>
 	</header>
 
-	<slot />
+	<div class="flex flex-grow">
+		<slot />
+	</div>
 	<footer>
 		<div class="flex justify-between p-8">
 			<div>{month} {day} {year}</div>
