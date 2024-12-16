@@ -19,18 +19,13 @@
 
   async function startConnection() {
     try {
-      ws = new WebSocket(`ws://localhost:8081/ws`);
+      ws = new WebSocket(`ws://localhost:8083/ws`);
 
       ws.onopen = async () => {
         console.log('WebSocket connected');
 
         try {
           pc = new RTCPeerConnection();
-
-          localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          if (localStream) {
-            localStream.getTracks().forEach((track) => pc?.addTrack(track));
-          }
 
           pc.onicecandidate = (event) => {
             if (event.candidate) {
@@ -41,6 +36,19 @@
               ws?.send(JSON.stringify(answer));
             }
           };
+
+          localStream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              channelCount: 1,
+              sampleRate: 48000
+            }
+          });
+          if (localStream) {
+            localStream.getTracks().forEach((track) => {              
+              console.log(track.getSettings());
+              pc?.addTrack(track);
+            });
+          }
 
           pc.onconnectionstatechange = async () => {};
 

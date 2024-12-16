@@ -18,7 +18,7 @@ func getFileAndWriter(writer *oggwriter.OggWriter) (*os.File, *oggwriter.OggWrit
 		slog.Error("Error creating file", "Error", err)
 		return nil, nil, err
 	}
-	writer, err = oggwriter.New(filename, 48000, 2)
+	writer, err = oggwriter.New(filename, 48000, 1)
 	if err != nil {
 		slog.Error("Error creating oggwriter", "Error", err)
 		return nil, nil, err
@@ -29,6 +29,11 @@ func getFileAndWriter(writer *oggwriter.OggWriter) (*os.File, *oggwriter.OggWrit
 
 // handleAudioStream handles the audio stream by writing it to file
 func handleAudioStream(track *webrtc.TrackRemote, isStreaming *bool) {
+
+	// WIP: Use transcribe that is defined in sherpa.go
+	// This take the audio stream for ever
+	Transcribe(track)
+
 	var writer *oggwriter.OggWriter
 	for {
 		// Read RTP packets to flush the buffer
