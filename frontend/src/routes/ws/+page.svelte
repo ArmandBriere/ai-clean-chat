@@ -44,7 +44,7 @@
             }
           });
           if (localStream) {
-            localStream.getTracks().forEach((track) => {              
+            localStream.getTracks().forEach((track) => {
               console.log(track.getSettings());
               pc?.addTrack(track);
             });
