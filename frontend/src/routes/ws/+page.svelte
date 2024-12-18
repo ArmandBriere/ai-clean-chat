@@ -154,13 +154,13 @@
 
 <div class="justify-center text-center">
   {#if userId}
-    <div class="m-4 p-4 bg-[darkgray] rounded">
+    <div class="m-4 rounded bg-[darkgray] p-4">
       <p>
         {userId}
       </p>
     </div>
   {/if}
-  <div class="m-4 p-4 bg-[darkgray] rounded">
+  <div class="m-4 rounded bg-[darkgray] p-4">
     <button on:click={startStreaming} aria-label="Start WebRTC">Start WebRTC</button>
   </div>
 </div>
