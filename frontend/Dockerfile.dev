@@ -1,0 +1,16 @@
+FROM oven/bun:1
+ARG UID
+ARG GID
+ENV UID=$UID
+ENV GID=$GID
+RUN groupmod -g $GID || true
+RUN usermod -u $UID -g $GID bun
+
+WORKDIR /usr/src/app
+
+EXPOSE 3000/tcp
+
+# Run as bun user to generate node_modules with correct permissions
+USER bun
+
+CMD ["sleep", "infinity"]
