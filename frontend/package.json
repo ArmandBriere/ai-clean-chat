@@ -2,7 +2,6 @@
 	"name": "frontend",
 	"version": "0.0.1",
 	"devDependencies": {
-		"@iconify/svelte": "^4.1.0",
 		"@sveltejs/adapter-auto": "^3.0.0",
 		"@sveltejs/kit": "^2.0.0",
 		"@sveltejs/vite-plugin-svelte": "^4.0.0",
@@ -31,6 +30,10 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@fontsource/roboto": "^5.1.0",
 		"uuid": "^11.0.3"
+	},
+	"resolutions": {
+		"rollup": "npm:@rollup/wasm-node"
 	}
 }
