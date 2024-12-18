@@ -1,44 +1,44 @@
 <script lang="ts">
-	import { onDestroy, onMount } from 'svelte';
-	const servers = {
-		iceServers: [{ urls: ['stun:stun1.1.google.com:19302', 'stun:stun2.1.google.com:19302'] }],
-		iceCandidatePoolSize: 10
-	};
-	let userStream: MediaStream;
-	let remoteStream: MediaStream;
-	onDestroy(() => {
-		stopMediaTracks();
-	});
-	onMount(async () => {
-		const stream = await navigator.mediaDevices.getUserMedia({
-			video: true,
-			audio: true
-		});
-		userStream = stream;
-	});
-	onMount(() => {
-		let pc = new RTCPeerConnection(servers);
+  import { onDestroy, onMount } from 'svelte';
+  const servers = {
+    iceServers: [{ urls: ['stun:stun1.1.google.com:19302', 'stun:stun2.1.google.com:19302'] }],
+    iceCandidatePoolSize: 10
+  };
+  let userStream: MediaStream;
+  let remoteStream: MediaStream;
+  onDestroy(() => {
+    stopMediaTracks();
+  });
+  onMount(async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true
+    });
+    userStream = stream;
+  });
+  onMount(() => {
+    let pc = new RTCPeerConnection(servers);
 
-		// TODO: Push tracks from userStream to peer connection
+    // TODO: Push tracks from userStream to peer connection
 
-		// TODO: Pull tracks from remoteStream, add to video stream
-	});
+    // TODO: Pull tracks from remoteStream, add to video stream
+  });
 
-	function stopMediaTracks() {
-		if (remoteStream?.active) {
-			const tracks = remoteStream.getTracks();
-			for (const track of tracks) {
-				track.stop();
-			}
-		}
+  function stopMediaTracks() {
+    if (remoteStream?.active) {
+      const tracks = remoteStream.getTracks();
+      for (const track of tracks) {
+        track.stop();
+      }
+    }
 
-		if (userStream?.active) {
-			const tracks = userStream.getTracks();
-			for (const track of tracks) {
-				track.stop();
-			}
-		}
-	}
+    if (userStream?.active) {
+      const tracks = userStream.getTracks();
+      for (const track of tracks) {
+        track.stop();
+      }
+    }
+  }
 </script>
 
 <video id="localVideo" autoplay muted playsinline></video>
