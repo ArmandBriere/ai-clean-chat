@@ -10,4 +10,7 @@ WORKDIR /usr/src/app
 
 EXPOSE 3000/tcp
 
+# Run as bun user to generate node_modules with correct permissions
+USER bun
+
 CMD ["sleep", "infinity"]
