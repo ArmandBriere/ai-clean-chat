@@ -1,10 +1,25 @@
 services:
+  # nginx:
+  #   build:
+  #     context: ./nginx
+  #   ports:
+  #     - "8080:80"
+  #   restart: unless-stopped
 
-  nginx:
-    build:
-      context: ./nginx
+  traefik:
+    image: traefik  # Ensure you're using the latest version
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"  # Define HTTP entrypoint
+      - "--providers.file.directory=/etc/traefik/dynamic"  # Load dynamic config
+      - "--providers.file.watch=true"   # Watch for dynamic config changes
     ports:
-      - "8080:80"
+      - "8080:80"  # HTTP access
+      - "8081:8080"  # Traefik dashboard
+    volumes:
+      - "./traefik/dynamic:/etc/traefik/dynamic"  # Mount for dynamic config
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
     restart: unless-stopped
 
   frontend:
@@ -28,5 +43,5 @@ services:
     volumes:
       - ./backend:/app
     ports:
-      - "8081:8080"
+      - "8082:8080"
     restart: unless-stopped

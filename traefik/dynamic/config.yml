@@ -1,0 +1,31 @@
+http:
+  routers:
+    frontend-router:
+      rule: "Host(`localhost`)"  # Match the hostname
+      entryPoints:
+        - web
+      service: frontend-service
+
+    backend-router:
+      rule: "Host(`localhost`) && PathPrefix(`/api/backend/`)"  # Match the API path
+      entryPoints:
+        - web
+      service: backend-service
+
+  services:
+    frontend-service:
+      loadBalancer:
+        servers:
+          - url: "http://frontend:3000"
+
+    backend-service:
+      loadBalancer:
+        servers:
+          - url: "http://backend:8082"
+        passHostHeader: true  # Ensures Host header is passed to backend
+
+  middlewares:
+    strip-api-prefix:
+      stripPrefix:
+        prefixes:
+          - "/api/backend"
