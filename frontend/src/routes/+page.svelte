@@ -1,3 +1,29 @@
+<script lang="ts">
+  import { goto } from '$app/navigation';
+  import { onDestroy } from 'svelte';
+
+  let name = $state('');
+
+  function isEmpty(item: string) {
+    return item === '';
+  }
+
+  // onKeydown event handler function to submit form on Enter key press
+  function onKeyDown(e: { key: string }) {
+    switch (e.key) {
+      case 'Enter':
+        goToMeeting();
+        break;
+    }
+  }
+
+  function goToMeeting() {
+    if (!isEmpty(name)) {
+      goto(`/ws/${name}`); // Adjust route later with correct structure
+    }
+  }
+</script>
+
 <div class="grid-[1fr] m-auto grid w-full max-w-xl justify-center text-center">
   <h1 class="mb-8 text-2xl">AI-Powered Clean Talk:<br />Advanced Profanity Detection Patterns</h1>
   <div class="mb-8">
@@ -8,15 +34,27 @@
     </p>
   </div>
   <div class="flex w-full justify-center space-x-4">
-    <a href="/ws" class="flex items-center rounded bg-blue-600 px-5 py-3 text-white">
+    <a href="/ws" class="flex items-center rounded bg-blue-600 px-5 py-3 font-medium text-white">
       <span class="material-symbols-outlined mr-2"> videocam </span>
-
-      New meeting</a
-    >
-    <button class="flex items-center rounded border px-5 py-3 text-gray-600">
+      New meeting
+    </a>
+    <div class="flex items-center rounded border px-5 py-3 text-gray-600">
       <span class="material-symbols-outlined mr-2"> keyboard </span>
-      Enter code</button
+      <input
+        bind:value={name}
+        class="border-none outline-none"
+        type="text"
+        placeholder="Enter code"
+      />
+    </div>
+    <button
+      disabled={isEmpty(name)}
+      onclick={goToMeeting}
+      class="w-20 rounded-sm bg-blue-600 px-4 py-2 font-medium text-white disabled:bg-gray-300 disabled:text-gray-600"
     >
-    <button class="rounded-sm px-4 py-2 text-gray-600">Join</button>
+      Join
+    </button>
   </div>
 </div>
+
+<svelte:document on:keydown={onKeyDown} />
