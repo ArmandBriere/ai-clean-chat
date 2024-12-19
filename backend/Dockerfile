@@ -17,6 +17,4 @@ WORKDIR /app
 COPY --from=builder /go/bin/air /usr/local/bin/air
 COPY --from=builder /app .
 
-EXPOSE 8080
-
 CMD ["air"]

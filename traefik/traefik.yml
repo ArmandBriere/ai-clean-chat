@@ -1,0 +1,13 @@
+entryPoints:
+  web:
+    address: ":80"
+
+providers:
+  docker: 
+    exposedByDefault: false  # Optional, restricts auto-discovery
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true  # Watch for changes in dynamic configuration
+
+api:
+  insecure: true  # Enable the dashboard
