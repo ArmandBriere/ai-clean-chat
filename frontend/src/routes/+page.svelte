@@ -1,8 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { onDestroy } from 'svelte';
 
-  let name = $state('');
+  let meetingCode = $state('');
 
   function isEmpty(item: string) {
     return item === '';
@@ -18,8 +17,8 @@
   }
 
   function goToMeeting() {
-    if (!isEmpty(name)) {
-      goto(`/ws/${name}`); // Adjust route later with correct structure
+    if (!isEmpty(meetingCode)) {
+      goto(`/ws/${meetingCode}`); // Adjust route later with correct structure
     }
   }
 </script>
@@ -41,14 +40,14 @@
     <div class="flex items-center rounded border px-5 py-3 text-gray-600">
       <span class="material-symbols-outlined mr-2"> keyboard </span>
       <input
-        bind:value={name}
+        bind:value={meetingCode}
         class="border-none outline-none"
         type="text"
         placeholder="Enter code"
       />
     </div>
     <button
-      disabled={isEmpty(name)}
+      disabled={isEmpty(meetingCode)}
       onclick={goToMeeting}
       class="w-20 rounded-sm bg-blue-600 px-4 py-2 font-medium text-white disabled:bg-gray-300 disabled:text-gray-600"
     >
