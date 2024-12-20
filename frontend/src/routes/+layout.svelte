@@ -30,15 +30,19 @@
     <!-- wrapper -->
     <div class="flex w-full justify-between p-8">
       <!-- left nav -->
-      <div class="flex items-center space-x-4">
-        <Image src={logo1} alt="logo" class="w-full object-contain" />
-        <Image src={logo2} alt="logo" class="w-full object-contain" />
-        <Image src={logo3} alt="logo" class="w-full object-contain" />
-      </div>
+      <a href="/">
+        <div class="flex items-center space-x-4">
+          <Image src={logo1} alt="logo" class="w-full object-contain" />
+          <Image src={logo2} alt="logo" class="w-full object-contain" />
+          <Image src={logo3} alt="logo" class="w-full object-contain" />
+        </div>
+      </a>
       <!-- right nav -->
       <div>
         <div class="w-14 overflow-hidden rounded-full">
-          <Image src={avatar} alt="avatar" class="w-full object-contain" />
+          <a href="/health">
+            <Image src={avatar} alt="avatar" class="w-full object-contain" />
+          </a>
         </div>
       </div>
     </div>
