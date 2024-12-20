@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/pion/webrtc/v4"
 	"github.com/pion/webrtc/v4/pkg/media/oggwriter"
 )
@@ -18,7 +19,7 @@ func getFileAndWriter(writer *oggwriter.OggWriter) (*os.File, *oggwriter.OggWrit
 		slog.Error("Error creating file", "Error", err)
 		return nil, nil, err
 	}
-	writer, err = oggwriter.New(filename, 48000, 2)
+	writer, err = oggwriter.New(filename, 48000, 1)
 	if err != nil {
 		slog.Error("Error creating oggwriter", "Error", err)
 		return nil, nil, err
@@ -28,33 +29,8 @@ func getFileAndWriter(writer *oggwriter.OggWriter) (*os.File, *oggwriter.OggWrit
 }
 
 // handleAudioStream handles the audio stream by writing it to file
-func handleAudioStream(track *webrtc.TrackRemote, isStreaming *bool) {
-	var writer *oggwriter.OggWriter
-	for {
-		// Read RTP packets to flush the buffer
-		rtpPacket, _, err := track.ReadRTP()
-		if err != nil {
-			slog.Error("rtpPacket setup", "Error", err)
-			return
-		}
-		if *isStreaming {
-			if writer == nil {
-				var f *os.File
-				f, writer, err = getFileAndWriter(writer)
-				if err != nil {
-					slog.Error("Error creating file and oggwriter", "Error", err)
-					return
-				}
-				defer func() {
-					writer.Close()
-					f.Close()
-				}()
-			}
+func handleAudioStream(track *webrtc.TrackRemote, isStreaming *bool, quit chan bool, wsConn *websocket.Conn) {
 
-			if err := writer.WriteRTP(rtpPacket); err != nil {
-				slog.Error("write RTP", "Error", err)
-				return
-			}
-		}
-	}
+	// This take the audio stream for ever
+	transcribe(track, isStreaming, quit, wsConn)
 }

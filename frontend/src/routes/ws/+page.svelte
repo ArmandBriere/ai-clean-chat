@@ -7,6 +7,8 @@
   let localStream: MediaStream | null = null;
   let userId: string = uuidv4();
 
+  let messages: string[] = $state([]);
+
   let isStreaming = false;
 
   onMount(async () => {
@@ -27,11 +29,6 @@
         try {
           pc = new RTCPeerConnection();
 
-          localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          if (localStream) {
-            localStream.getTracks().forEach((track) => pc?.addTrack(track));
-          }
-
           pc.onicecandidate = (event) => {
             if (event.candidate) {
               let answer: IceCandidateMessage = {
@@ -41,6 +38,19 @@
               ws?.send(JSON.stringify(answer));
             }
           };
+
+          localStream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              channelCount: 1,
+              sampleRate: 48000
+            }
+          });
+          if (localStream) {
+            localStream.getTracks().forEach((track) => {
+              console.log(track.getSettings());
+              pc?.addTrack(track);
+            });
+          }
 
           pc.onconnectionstatechange = async () => {};
 
@@ -94,6 +104,15 @@
             } catch (e) {
               console.error('Error adding ICE candidate:', e);
             }
+          } else if (message.type === 'streaming') {
+            if (message.isStreaming) {
+              console.log('Starting streaming');
+            } else {
+              console.log('Stopping streaming');
+            }
+          } else if (message.type === 'transcription') {
+            const updatedMessages = [...messages, message.text];
+            messages = updatedMessages.slice(-25);
           }
         };
 
@@ -152,7 +171,7 @@
   }
 </script>
 
-<div class="justify-center text-center">
+<div class="w-full justify-center text-center">
   {#if userId}
     <div class="m-4 rounded bg-[darkgray] p-4">
       <p>
@@ -161,6 +180,12 @@
     </div>
   {/if}
   <div class="m-4 rounded bg-[darkgray] p-4">
-    <button on:click={startStreaming} aria-label="Start WebRTC">Start WebRTC</button>
+    <button onclick={startStreaming} aria-label="Start WebRTC">Start WebRTC</button>
+  </div>
+  <div class="m-4 text-left text-gray-600">
+    <span class="font-normal"> Transcription: </span>
+    {#each messages as message}
+      {message}
+    {/each}
   </div>
 </div>

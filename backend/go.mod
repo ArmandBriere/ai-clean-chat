@@ -4,11 +4,16 @@ go 1.23.3
 
 require (
 	github.com/gorilla/websocket v1.5.3
+	github.com/hraban/opus v0.0.0-20230925203106-0188a62cb302
+	github.com/k2-fsa/sherpa-onnx-go v1.8.14
 	github.com/pion/webrtc/v4 v4.0.5
 )
 
 require (
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/k2-fsa/sherpa-onnx-go-linux v1.10.34 // indirect
+	github.com/k2-fsa/sherpa-onnx-go-macos v1.10.34 // indirect
+	github.com/k2-fsa/sherpa-onnx-go-windows v1.10.35 // indirect
 	github.com/pion/datachannel v1.5.9 // indirect
 	github.com/pion/dtls/v3 v3.0.4 // indirect
 	github.com/pion/ice/v4 v4.0.3 // indirect

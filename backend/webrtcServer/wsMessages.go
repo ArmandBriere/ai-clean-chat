@@ -9,7 +9,7 @@ import (
 )
 
 // parseOfferMessage parses the offer message
-func parseOfferMessage(msg WebSocketMessage, peerConnection *webrtc.PeerConnection, conn *websocket.Conn) {
+func parseOfferMessage(msg WebSocketMessage, peerConnection *webrtc.PeerConnection, wsConn *websocket.Conn) {
 	slog.Info("Offer message received")
 	sdp := msg.SDP
 	offer := webrtc.SessionDescription{Type: webrtc.SDPTypeOffer, SDP: sdp}
@@ -29,7 +29,7 @@ func parseOfferMessage(msg WebSocketMessage, peerConnection *webrtc.PeerConnecti
 		return
 	}
 
-	if err := conn.WriteJSON(WebSocketMessage{Type: "answer", SDP: answer.SDP}); err != nil {
+	if err := wsConn.WriteJSON(WebSocketMessage{Type: "answer", SDP: answer.SDP}); err != nil {
 		slog.Error("Error writing answer", "error", err)
 		return
 	}

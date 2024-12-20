@@ -1,0 +1,3 @@
+[submodule "backend/sherpa-onnx"]
+	path = backend/sherpa-onnx
+	url = git@github.com:k2-fsa/sherpa-onnx.git

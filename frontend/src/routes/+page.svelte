@@ -10,13 +10,12 @@
   <div class="flex w-full justify-center space-x-4">
     <a href="/ws" class="flex items-center rounded bg-blue-600 px-5 py-3 text-white">
       <span class="material-symbols-outlined mr-2"> videocam </span>
-
-      New meeting</a
-    >
+      New meeting
+    </a>
     <button class="flex items-center rounded border px-5 py-3 text-gray-600">
       <span class="material-symbols-outlined mr-2"> keyboard </span>
-      Enter code</button
-    >
+      Enter code
+    </button>
     <button class="rounded-sm px-4 py-2 text-gray-600">Join</button>
   </div>
 </div>
