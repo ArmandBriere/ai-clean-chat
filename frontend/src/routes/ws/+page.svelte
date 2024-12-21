@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { v4 as uuidv4 } from 'uuid';
+  import { PUBLIC_SERVER_WS_URL } from '$env/static/public';
 
   let ws: WebSocket | null = null;
   let pc: RTCPeerConnection | null = null;
@@ -19,7 +20,7 @@
 
   async function startConnection() {
     try {
-      ws = new WebSocket(`ws://localhost:8081/ws`);
+      ws = new WebSocket(`${PUBLIC_SERVER_WS_URL}`);
 
       ws.onopen = async () => {
         console.log('WebSocket connected');
