@@ -4,6 +4,46 @@ This is an application developed for ConFoo 2025. It is a video chat application
 
 The application is built with Svelte and Python.
 
+## Requirements
+
+- Docker
+- Docker Compose
+- mkcert
+
+First, you need to install the local CA into the system trust store. This need to be ran only once on your system.
+
+```bash
+mkcert -install
+```
+
+Then update your `/etc/hosts` file to add the following entry:
+
+```txt
+127.0.0.1 ai-clean-chat.home.site
+```
+
+## Installation
+
+1. Initialize the project
+
+```bash
+make init
+```
+
+2. Install dependencies
+
+```bash
+make install
+```
+
+3. Run the vite dev server
+
+```bash
+make dev
+```
+
+4. Visit the application at [https://ai-clean-chat.home.site](https://ai-clean-chat.home.site)
+
 ## Backend
 
 The backend is a Python application that uses the AI model to analyze the conversation. It uses the `faster-whisper` model to analyze the conversation and a custom model to identify inappropriate content.
@@ -50,7 +90,7 @@ The frontend is a Svelte application that uses WebRTC to handle the video chat a
 
 The frontend dependencies are managed with [bun](https://bun.sh/), you can install it with:
 
-```bash 
+```bash
 curl -fsSL https://bun.sh/install | bash
 ```
 

@@ -33,6 +33,7 @@ endef
 define start_project
 	@echo -e "\n${cyan}🚀 Starting project...${nc}"
 	@docker compose up -d
+	$(call bun_dev)
 	@echo -e "\n${green}✅ Project started!${nc}\n"
 endef
 

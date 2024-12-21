@@ -1,16 +1,32 @@
 http:
   routers:
-    frontend-router:
-      rule: "Host(`localhost`)"  # Match the hostname
+    frontend-router-http:
+      rule: "Host(`ai-clean-chat.home.site`)"  # Match the hostname
       entryPoints:
         - web
       service: frontend-service
 
-    backend-router:
-      rule: "Host(`localhost`) && PathPrefix(`/api/backend/`)"  # Match the API path
+    backend-router-http:
+      rule: "Host(`ai-clean-chat.home.site`) && PathPrefix(`/api/backend/`)"  # Match the API path
       entryPoints:
         - web
       service: backend-service
+
+    frontend-router-https:
+      rule: "Host(`ai-clean-chat.home.site`)"  # Match the hostname
+      entryPoints:
+        - websecure
+      service: frontend-service
+      tls: true
+
+    backend-router-https:
+      rule: "Host(`ai-clean-chat.home.site`) && PathPrefix(`/api/backend/`)"  # Match the API path
+      entryPoints:
+        - websecure
+      service: backend-service
+      middlewares:
+        - strip-api-prefix
+      tls: true
 
   services:
     frontend-service:
@@ -21,7 +37,7 @@ http:
     backend-service:
       loadBalancer:
         servers:
-          - url: "http://backend:8082"
+          - url: "http://backend:8080"
         passHostHeader: true  # Ensures Host header is passed to backend
 
   middlewares:
@@ -29,3 +45,7 @@ http:
       stripPrefix:
         prefixes:
           - "/api/backend"
+tls:
+  certificates:
+    - certFile: /var/traefik/certs/home.site+1.pem
+      keyFile: /var/traefik/certs/home.site+1-key.pem
