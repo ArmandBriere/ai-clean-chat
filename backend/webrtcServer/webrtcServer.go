@@ -22,13 +22,14 @@ func AddWebRTCHandle() {
 
 // handleWebSocket handles incoming WebRTC connections
 func handleWebSocket(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
+	wsConn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		slog.Error("WebSocket connection upgrade failed", "Error", err)
 		return
 	}
-	defer conn.Close()
+	defer wsConn.Close()
 
+	// Register the MediaEngine
 	mediaEngine := webrtc.MediaEngine{}
 	if err := mediaEngine.RegisterDefaultCodecs(); err != nil {
 		slog.Error("Codec register failed", "Error", err)
@@ -37,37 +38,17 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 	api := webrtc.NewAPI(webrtc.WithMediaEngine(&mediaEngine))
 
+	// Create a new RTCPeerConnection
 	peerConnection, err := api.NewPeerConnection(webrtc.Configuration{})
 	if err != nil {
 		slog.Error("New peer connection failed", "Error", err)
 		return
 	}
-	peerConnections[conn] = peerConnection
-	defer delete(peerConnections, conn)
+	peerConnections[wsConn] = peerConnection
+	defer delete(peerConnections, wsConn)
 	defer peerConnection.Close()
 
-	audioTrack, err := webrtc.NewTrackLocalStaticRTP(webrtc.RTPCodecCapability{MimeType: webrtc.MimeTypeOpus}, "audio", "pion")
-	if err != nil {
-		slog.Error("New audio track failed", "Error", err)
-		return
-	}
-
-	rtpSender, err := peerConnection.AddTrack(audioTrack)
-	if err != nil {
-		slog.Error("Adding track failed", "Error", err)
-		return
-	}
-
-	go func() {
-		rtpBuf := make([]byte, 1500)
-		for {
-			_, _, readErr := rtpSender.Read(rtpBuf)
-			if readErr != nil {
-				return
-			}
-		}
-	}()
-
+	// Listen for ICE candidates and write them to the WebSocket
 	peerConnection.OnICECandidate(func(i *webrtc.ICECandidate) {
 		if i == nil {
 			return
@@ -79,29 +60,36 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := conn.WriteJSON(map[string]interface{}{"type": "iceCandidate", "candidate": string(candidate)}); err != nil {
+		if err := wsConn.WriteJSON(map[string]interface{}{"type": "iceCandidate", "candidate": string(candidate)}); err != nil {
 			slog.Error("Writing iceCandidate failed", "Error", err)
 			return
 		}
 	})
 
+	// Streaming flag to start/stop audio transcription
 	isStreaming := false
+	// Quit signal that stops the transcription and delete resources
+	quit := make(chan bool)
 
+	// Handle incoming audio
 	peerConnection.OnTrack(func(track *webrtc.TrackRemote, receiver *webrtc.RTPReceiver) {
 		codecName := track.Codec().MimeType
 		slog.Info("Got track, codec", "codecName", codecName)
 
 		if codecName == webrtc.MimeTypeOpus {
 			slog.Info("Track has started")
-			go handleAudioStream(track, &isStreaming)
+
+			go handleAudioStream(track, &isStreaming, quit, wsConn)
 		}
 	})
 
 	for {
-		_, message, err := conn.ReadMessage()
+		_, message, err := wsConn.ReadMessage()
 		if err != nil {
 			slog.Error("Read message error", "error", err)
-			break
+			slog.Info("Quit signal sent")
+			quit <- true
+			return
 		}
 
 		var msg WebSocketMessage
@@ -112,7 +100,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 		switch msg.Type {
 		case "offer":
-			parseOfferMessage(msg, peerConnection, conn)
+			parseOfferMessage(msg, peerConnection, wsConn)
 		case "iceCandidate":
 			parseIceCandidateMessage(msg, peerConnection)
 		case "streaming":

@@ -270,3 +270,10 @@ data/
 
 # Air tmp folder
 tmp/
+
+# Sherpa models
+sherpa-onnx/
+sherpa-onnx-*
+
+# Compiled files
+profanity.com
