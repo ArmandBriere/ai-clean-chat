@@ -22,6 +22,4 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /go/bin/air /usr/local/bin/air
 COPY --from=builder /app .
 
-EXPOSE 8080
-
 CMD ["air"]
