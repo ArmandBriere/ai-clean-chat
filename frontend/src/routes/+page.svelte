@@ -8,11 +8,9 @@
   }
 
   // onKeydown event handler function to submit form on Enter key press
-  function onKeyDown(e: { key: string }) {
-    switch (e.key) {
-      case 'Enter':
-        goToMeeting();
-        break;
+  function onKeyDown(e: KeyboardEvent) {
+    if (e.key === 'Enter' || e.code === 'Enter') {
+      goToMeeting();
     }
   }
 
