@@ -1,16 +1,17 @@
-FROM oven/bun:1
+FROM denoland/deno:2.1.4
+
 ARG UID
 ARG GID
 ENV UID=$UID
 ENV GID=$GID
 RUN groupmod -g $GID || true
-RUN usermod -u $UID -g $GID bun
+RUN usermod -u $UID -g $GID deno
 
 WORKDIR /usr/src/app
 
 EXPOSE 3000/tcp
 
-# Run as bun user to generate node_modules with correct permissions
-USER bun
+# Run as deno user to generate node_modules with correct permissions
+USER deno
 
 CMD ["sleep", "infinity"]
