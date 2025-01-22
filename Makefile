@@ -26,14 +26,14 @@ help: ## Show this help with the list of commands
 
 define init_project
 	@echo -e "\n${cyan}🚀 Initializing project...${nc}"
-	@docker compose build
+	@docker compose build --no-cache
+	@docker compose up -d
 	@echo -e "\n${green}✅ Project initialized!${nc}\n"
 endef
 
 define start_project
 	@echo -e "\n${cyan}🚀 Starting project...${nc}"
 	@docker compose up -d
-	$(call bun_dev)
 	@echo -e "\n${green}✅ Project started!${nc}\n"
 endef
 
@@ -48,19 +48,18 @@ define logs_project
 	@docker compose logs -f
 endef
 
-define bun_dev
+define deno_dev
 	@echo -e "\n${cyan}🚀 Starting development server...${nc}"
-	@docker compose exec frontend bun dev
+	@docker compose exec frontend deno run dev
 endef
 
-define bun_install
+define deno_install
 	@echo -e "\n${cyan}🚀 Installing dependencies...${nc}"
-	@docker compose exec frontend bun install
+	@docker compose exec frontend deno install --allow-scripts=npm:@sveltejs/kit@2.15.2
 endef
 
 init: ## Initialize the project
 	$(call init_project)
-	$(call start_project)
 
 start: ## Start the project
 	$(call start_project)
@@ -72,10 +71,10 @@ logs: ## Show the logs
 	$(call logs_project)
 
 dev: ## Start the development server
-	$(call bun_dev)
+	$(call deno_dev)
 
 install: ## Install dependencies
-	$(call bun_install)
+	$(call deno_install)
 
 clean: ## Clean the Project
 	@echo -e "\n${cyan}🚀 Cleaning project...${nc}"

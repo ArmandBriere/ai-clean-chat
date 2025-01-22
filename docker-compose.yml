@@ -22,6 +22,7 @@ services:
         GID: ${GID}
     volumes:
       - ./frontend:/usr/src/app
+      - $HOME/.deno:/deno-dir
     ports:
       - "3000:3000"
     restart: unless-stopped

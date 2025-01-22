@@ -18,7 +18,7 @@
     "vitest": "^2.0.4"
   },
   "scripts": {
-    "dev": "bunx --bun vite dev --port 3000 --host 0.0.0.0",
+    "dev": "vite dev --port 3000 --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --port 3000 --host 0.0.0.0",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
