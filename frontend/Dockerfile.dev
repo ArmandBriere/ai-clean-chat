@@ -1,17 +1,16 @@
 FROM denoland/deno:2.1.4
 
-ARG UID
-ARG GID
-ENV UID=$UID
-ENV GID=$GID
-RUN groupmod -g $GID || true
-RUN usermod -u $UID -g $GID deno
-
 WORKDIR /usr/src/app
 
 EXPOSE 3000/tcp
 
-# Run as deno user to generate node_modules with correct permissions
-USER deno
+# Change the folder permission
+RUN chown -R deno:deno /usr/src/app
 
-CMD ["sleep", "infinity"]
+# Copy the files to the working directory
+COPY . .
+
+# Install dependencies
+RUN deno install --allow-scripts=npm:@sveltejs/kit@2.15.2
+
+ENTRYPOINT [ "deno", "run", "dev" ]
