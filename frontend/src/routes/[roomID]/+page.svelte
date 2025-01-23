@@ -1,24 +1,29 @@
 <script lang="ts">
+  import { page } from '$app/state';
   import { onMount, onDestroy } from 'svelte';
-  import { v4 as uuidv4 } from 'uuid';
-  import { PUBLIC_SERVER_WS_URL } from '$env/static/public';
+  import { PUBLIC_SERVER_URL, PUBLIC_SERVER_WS_URL } from '$env/static/public';
 
+  let roomID = page.params.roomID;
   let ws: WebSocket | null = null;
   let pc: RTCPeerConnection | null = null;
   let localStream: MediaStream | null = null;
-  let userId: string = uuidv4();
 
   let messages: string[] = $state([]);
-
   let isStreaming = false;
 
   onMount(async () => {
-    startConnection();
+    // startConnection();
+    joinRoom();
   });
 
   onDestroy(() => {
     cleanup();
   });
+
+  // joinRoom function to join the room
+  async function joinRoom() {
+    console.log('Joining room:', roomID);
+  }
 
   async function startConnection() {
     try {
@@ -173,10 +178,10 @@
 </script>
 
 <div class="w-full justify-center text-center">
-  {#if userId}
+  {#if roomID}
     <div class="m-4 rounded bg-[darkgray] p-4">
       <p>
-        {userId}
+        {roomID}
       </p>
     </div>
   {/if}
