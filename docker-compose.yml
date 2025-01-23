@@ -17,12 +17,9 @@ services:
     build:
       dockerfile: Dockerfile.dev
       context: ./frontend
-      args:
-        UID: ${UID}
-        GID: ${GID}
     volumes:
       - ./frontend:/usr/src/app
-      - $HOME/.deno:/deno-dir
+      # - $HOME/.deno:/deno-dir
     ports:
       - "3000:3000"
     restart: unless-stopped

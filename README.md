@@ -13,14 +13,20 @@ The application is built with Svelte and Python.
 First, you need to install the local CA into the system trust store. This need to be ran only once on your system.
 
 ```bash
+cd traefik/certs/
+mkcert ai-clean-chat.home.site
 mkcert -install
 ```
+
+The commands above will generate a `ai-clean-chat.home.site.pem` and `ai-clean-chat.home.site-key.pem` files that are tied to your machine and user.
 
 Then update your `/etc/hosts` file to add the following entry:
 
 ```txt
 127.0.0.1 ai-clean-chat.home.site
 ```
+
+You will now be able to access the application at [https://ai-clean-chat.home.site](https://ai-clean-chat.home.site) with a proper ssl certificate.
 
 ## Installation
 

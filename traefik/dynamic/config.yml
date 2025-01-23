@@ -47,5 +47,5 @@ http:
           - "/api/backend"
 tls:
   certificates:
-    - certFile: /var/traefik/certs/home.site+1.pem
-      keyFile: /var/traefik/certs/home.site+1-key.pem
+    - certFile: /var/traefik/certs/ai-clean-chat.home.site.pem
+      keyFile: /var/traefik/certs/ai-clean-chat.home.site-key.pem
