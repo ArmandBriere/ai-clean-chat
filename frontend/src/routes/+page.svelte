@@ -31,6 +31,11 @@
     }
     goto(`/${meetingCode}`);
   }
+
+  // Redirect to the streaming page
+  async function goToStreaming() {
+    goto('/streaming');
+  }
 </script>
 
 <div class="grid-[1fr] m-auto grid w-full max-w-xl justify-center text-center">
@@ -49,6 +54,13 @@
     >
       <span class="material-symbols-outlined mr-2"> videocam </span>
       New meeting
+    </button>
+    <button
+      onclick={goToStreaming}
+      class="flex items-center rounded bg-blue-600 px-5 py-3 font-medium text-white"
+    >
+      <span class="material-symbols-outlined mr-2"> videocam </span>
+      Streaming
     </button>
     <div class="flex items-center rounded border px-5 py-3 text-gray-600">
       <span class="material-symbols-outlined mr-2"> keyboard </span>

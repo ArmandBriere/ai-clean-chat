@@ -4,78 +4,74 @@
   import { PUBLIC_SERVER_URL, PUBLIC_SERVER_WS_URL } from '$env/static/public';
 
   let roomID = page.params.roomID;
-  let ws: WebSocket | null = null;
-  let pc: RTCPeerConnection | null = null;
-  let localStream: MediaStream | null = null;
+
+  // Transcription
+  let wsTranscription: WebSocket | null = null;
+  let pcTranscription: RTCPeerConnection | null = null;
+  let streamTranscription: MediaStream | null = null;
 
   let messages: string[] = $state([]);
   let isStreaming = false;
 
   onMount(async () => {
-    // startConnection();
-    joinRoom();
+    startTranscriptionConnection();
   });
 
   onDestroy(() => {
     cleanup();
   });
 
-  // joinRoom function to join the room
-  async function joinRoom() {
-    console.log('Joining room:', roomID);
-  }
-
-  async function startConnection() {
+  async function startTranscriptionConnection() {
     try {
-      ws = new WebSocket(`${PUBLIC_SERVER_WS_URL}`);
+      wsTranscription = new WebSocket(`${PUBLIC_SERVER_WS_URL}/ws`);
 
-      ws.onopen = async () => {
-        console.log('WebSocket connected');
+      wsTranscription.onopen = async () => {
+        console.log('wsTranscription connected');
 
         try {
-          pc = new RTCPeerConnection();
+          pcTranscription = new RTCPeerConnection();
 
-          pc.onicecandidate = (event) => {
+          pcTranscription.onicecandidate = (event) => {
             if (event.candidate) {
               let answer: IceCandidateMessage = {
                 type: 'iceCandidate',
                 candidate: event.candidate
               };
-              ws?.send(JSON.stringify(answer));
+              wsTranscription?.send(JSON.stringify(answer));
             }
           };
 
-          localStream = await navigator.mediaDevices.getUserMedia({
+          streamTranscription = await navigator.mediaDevices.getUserMedia({
             audio: {
               channelCount: 1,
               sampleRate: 48000
             }
           });
-          if (localStream) {
-            localStream.getTracks().forEach((track) => {
+          if (streamTranscription) {
+            streamTranscription.getTracks().forEach((track) => {
               console.log(track.getSettings());
-              pc?.addTrack(track);
+              pcTranscription?.addTrack(track);
             });
           }
 
-          pc.onconnectionstatechange = async () => {};
+          pcTranscription.onconnectionstatechange = async () => {};
 
-          pc.oniceconnectionstatechange = () => {
-            if (pc?.iceConnectionState === 'failed') {
+          pcTranscription.oniceconnectionstatechange = () => {
+            if (pcTranscription?.iceConnectionState === 'failed') {
               console.log('ICE connection failed, restarting');
               restartConnection();
             }
           };
 
-          const offerDescription = await pc.createOffer();
-          await pc.setLocalDescription(offerDescription);
+          const offerDescription = await pcTranscription.createOffer();
+          await pcTranscription.setLocalDescription(offerDescription);
 
           if (offerDescription.sdp) {
             let offer: OfferMessage = {
               type: 'offer',
               sdp: offerDescription.sdp
             };
-            ws?.send(JSON.stringify(offer));
+            wsTranscription?.send(JSON.stringify(offer));
           }
         } catch (getUserMediaError) {
           console.error('Error getting user media:', getUserMediaError);
@@ -83,10 +79,10 @@
           return; // Important: Exit the onopen handler if getUserMedia fails
         }
 
-        if (!ws) {
+        if (!wsTranscription) {
           return;
         }
-        ws.onmessage = async (event) => {
+        wsTranscription.onmessage = async (event) => {
           const message = JSON.parse(event.data);
           if (message.type === 'answer') {
             let answer: AnswerMessage = {
@@ -95,7 +91,7 @@
             };
             const remoteDesc = new RTCSessionDescription(answer);
             try {
-              await pc?.setRemoteDescription(remoteDesc);
+              await pcTranscription?.setRemoteDescription(remoteDesc);
             } catch (setRemoteDescError) {
               console.error('Error setting remote description:', setRemoteDescError);
               cleanup();
@@ -105,7 +101,7 @@
               if (message.candidate) {
                 // Correctly parse the JSON string to an object
                 const candidate = JSON.parse(message.candidate);
-                await pc?.addIceCandidate(new RTCIceCandidate(candidate));
+                await pcTranscription?.addIceCandidate(new RTCIceCandidate(candidate));
               }
             } catch (e) {
               console.error('Error adding ICE candidate:', e);
@@ -122,18 +118,18 @@
           }
         };
 
-        ws.onclose = () => {
+        wsTranscription.onclose = () => {
           console.log('WebSocket closed');
           cleanup();
         };
 
-        ws.onerror = (error) => {
+        wsTranscription.onerror = (error) => {
           console.error('WebSocket error:', error);
           cleanup();
         };
       };
 
-      ws.onerror = (error) => {
+      wsTranscription.onerror = (error) => {
         console.error('WebSocket connection error:', error);
         cleanup();
       };
@@ -144,13 +140,13 @@
   }
 
   async function startStreaming() {
-    if (ws) {
+    if (wsTranscription) {
       isStreaming = !isStreaming;
       let message: StreamingMessage = {
         type: 'streaming',
         isStreaming: isStreaming
       };
-      ws.send(JSON.stringify(message));
+      wsTranscription.send(JSON.stringify(message));
     } else {
       console.error('WebSocket not connected');
     }
@@ -158,21 +154,23 @@
 
   function restartConnection() {
     cleanup();
-    startConnection();
+    startTranscriptionConnection();
   }
 
   function cleanup() {
-    if (ws) {
-      ws.close();
-      ws = null;
+    // Close the transcription ws connection
+    if (wsTranscription) {
+      wsTranscription.close();
+      wsTranscription = null;
     }
-    if (pc) {
-      pc.close();
-      pc = null;
+    // Close the transcription peer connection
+    if (pcTranscription) {
+      pcTranscription.close();
+      pcTranscription = null;
     }
-    if (localStream) {
-      localStream.getTracks().forEach((track) => track.stop());
-      localStream = null;
+    if (streamTranscription) {
+      streamTranscription.getTracks().forEach((track) => track.stop());
+      streamTranscription = null;
     }
   }
 </script>
@@ -185,6 +183,7 @@
       </p>
     </div>
   {/if}
+
   <div class="m-4 rounded bg-[darkgray] p-4">
     <button onclick={startStreaming} aria-label="Start WebRTC">Start WebRTC</button>
   </div>
