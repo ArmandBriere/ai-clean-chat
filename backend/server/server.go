@@ -1,7 +1,6 @@
 package server
 
 import (
-	"log"
 	"log/slog"
 	"math/rand"
 	"time"
@@ -49,13 +48,13 @@ func randStringRunes(n int) string {
 	return string(b)
 }
 
-func (r *RoomMap) InsertIntoRoom(roomID string, host bool, conn *websocket.Conn) {
+func (r *RoomMap) InsertIntoRoom(roomID string, userID string, conn *websocket.Conn) {
 	r.Mutex.Lock()
 	defer r.Mutex.Unlock()
 
-	p := Participant{host, conn}
+	p := Participant{userID, conn}
 
-	log.Println("Inserting into Room with RoomID: ", roomID)
+	slog.Info("Inserting into Room", "roomID", roomID)
 	r.Map[roomID] = append(r.Map[roomID], p)
 }
 
@@ -64,5 +63,4 @@ func (r *RoomMap) DeleteRoom(roomID string) {
 	defer r.Mutex.Unlock()
 
 	delete(r.Map, roomID)
-
 }

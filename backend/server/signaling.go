@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -13,7 +14,6 @@ var AllRooms RoomMap
 func CreateRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	roomID := AllRooms.CreateRoom()
-
 	type resp struct {
 		RoomID string `json:"room_id"`
 	}
@@ -31,6 +31,7 @@ var upgrader = websocket.Upgrader{
 type broadcastMsg struct {
 	Message map[string]interface{}
 	RoomID  string
+	UserID  string
 	Client  *websocket.Conn
 }
 
@@ -40,49 +41,61 @@ func broadcaster() {
 	for {
 		msg := <-broadcast
 		for _, client := range AllRooms.Map[msg.RoomID] {
-			if client.Conn != msg.Client {
+			if client.UserID != msg.UserID {
 				err := client.Conn.WriteJSON(msg.Message)
 
 				if err != nil {
-					log.Fatal(err)
-					client.Conn.Close()
+					slog.Error("An error occur while writing", "err", err)
 				}
-
 			}
 		}
 	}
+}
+func init() {
+	go broadcaster()
 }
 
 func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 	roomID, ok := r.URL.Query()["roomID"]
 	if !ok {
-		log.Println("RoomID missing in URL Parameters")
+		slog.Info("RoomID missing in URL Parameters")
+		return
+	}
+
+	userID, ok := r.URL.Query()["userID"]
+	if !ok {
+		slog.Info("userID missing in URL Parameters")
 		return
 	}
 
 	ws, err := upgrader.Upgrade(w, r, nil)
 
 	if err != nil {
-		log.Fatal("Web Socket Upgrade Error", err)
+		slog.Error("Web Socket Upgrade Error", "err", err)
+		return
 	}
 
-	AllRooms.InsertIntoRoom(roomID[0], false, ws)
-
-	go broadcaster()
+	slog.Info("New Connection", "roomID", roomID)
+	slog.Info("New Connection", "roomID[0]", roomID[0])
+	AllRooms.InsertIntoRoom(roomID[0], userID[0], ws)
 
 	for {
-		var msg broadcastMsg
-
-		err := ws.ReadJSON(&msg.Message)
+		var message map[string]interface{}
+		err := ws.ReadJSON(&message)
 		if err != nil {
-			log.Fatal("Read Error:", err)
+			slog.Error("Error reading JSON", "err", err)
+			return
 		}
 
-		msg.Client = ws
-		msg.RoomID = roomID[0]
+		broadcastMsg := broadcastMsg{
+			Message: message,
+			RoomID:  roomID[0],
+			UserID:  userID[0],
+			Client:  ws,
+		}
 
-		log.Println(msg.Message)
+		// slog.Info("New message", "msg", broadcastMsg.Message)
 
-		broadcast <- msg
+		broadcast <- broadcastMsg
 	}
 }
