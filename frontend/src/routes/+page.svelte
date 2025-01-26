@@ -29,7 +29,7 @@
     if (isEmpty(meetingCode)) {
       await setRoomID();
     }
-    goto(`/${meetingCode}`);
+    goto(`/chat/${meetingCode}`);
   }
 
   // Redirect to the streaming page

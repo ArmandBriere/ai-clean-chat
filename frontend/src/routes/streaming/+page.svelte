@@ -2,6 +2,12 @@
   import { onMount, onDestroy } from 'svelte';
   import { PUBLIC_SERVER_WS_URL } from '$env/static/public';
   import { v4 } from 'uuid';
+  import { OFFER, ANSWER, ICE_CANDIDATE } from '@/lib/constants/constants';
+  import type {
+    StreamingOfferMessage,
+    StreamingAnswerMessage,
+    StreamingIceCandidateMessage
+  } from '@/lib/constants/types';
 
   let roomID: string = 'example-room'; // Will be replaced with dynamic room ID
   let userVideo: HTMLVideoElement;
@@ -10,12 +16,6 @@
   let ws: WebSocket;
   let peerConnection: RTCPeerConnection;
   let localStream: MediaStream;
-
-  const ICE_CANDIDATE = 'iceCandidate';
-  const OFFER = 'offer';
-  const ANSWER = 'answer';
-  const STREAMING = 'streaming';
-  const TRANSCRIPTION = 'transcription';
 
   onMount(() => {
     // Connect to the signaling server
@@ -29,14 +29,16 @@
       const message = JSON.parse(event.data);
       console.log('Received signaling message:', message);
 
+      // Handle different message types
       if (message.type === OFFER) {
-        await handleOffer(message.candidate);
+        let data: StreamingOfferMessage = message;
+        await handleOffer(data.payload);
       } else if (message.type == ANSWER) {
-        console.log('Received answer:', message);
-        await handleAnswer(message.sdp);
+        let data: StreamingAnswerMessage = message;
+        await handleAnswer(data.payload);
       } else if (message.type == ICE_CANDIDATE) {
-        console.log('Received ICE candidate:', message.candidate);
-        await handleIceCandidate(message.candidate);
+        let data: StreamingIceCandidateMessage = message;
+        await handleIceCandidate(data.payload);
       }
     };
 
@@ -82,9 +84,9 @@
     // Handle ICE candidates
     peerConnection.onicecandidate = (event) => {
       if (event.type === 'icecandidate' && event.candidate) {
-        const message: WebSocketMessage = {
+        const message: any = {
           type: ICE_CANDIDATE,
-          candidate: event.candidate
+          payload: event.candidate
         };
         ws.send(JSON.stringify(message));
       }
@@ -103,15 +105,16 @@
       const offer = await peerConnection.createOffer();
       await peerConnection.setLocalDescription(offer);
       if (offer.type === OFFER && offer) {
-        const offerMessage: WebSocketMessage = {
+        const offerMessage: any = {
           type: OFFER,
-          candidate: offer
+          payload: offer
         };
         ws.send(JSON.stringify(offerMessage));
       }
     };
   }
 
+  // handleOffer sets the remote description of the peer connection and creates an answer
   async function handleOffer(offer: RTCSessionDescriptionInit) {
     await peerConnection.setRemoteDescription(offer);
     const answer = await peerConnection.createAnswer();
@@ -120,12 +123,13 @@
     if (answer.type === ANSWER && answer.sdp) {
       const answerMessage: any = {
         type: ANSWER,
-        sdp: answer
+        payload: answer
       };
       ws.send(JSON.stringify(answerMessage));
     }
   }
 
+  // handleAnswer sets the remote description of the peer connection
   async function handleAnswer(answer: RTCSessionDescriptionInit) {
     try {
       await peerConnection.setRemoteDescription(answer);
@@ -134,7 +138,8 @@
     }
   }
 
-  async function handleIceCandidate(candidate: any) {
+  // handleIceCandidate adds the received ICE candidate to the peer connection
+  async function handleIceCandidate(candidate: RTCIceCandidateInit) {
     try {
       await peerConnection.addIceCandidate(candidate);
     } catch (error) {

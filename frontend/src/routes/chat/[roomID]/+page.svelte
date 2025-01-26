@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { page } from '$app/state';
   import { onMount, onDestroy } from 'svelte';
   import { PUBLIC_SERVER_WS_URL } from '$env/static/public';
+  import { ANSWER, ICE_CANDIDATE, STREAMING, TRANSCRIPTION } from '@/lib/constants/constants';
 
+  import { page } from '$app/state';
   let roomID = page.params.roomID;
 
   // Transcription
@@ -177,13 +178,13 @@
 </script>
 
 <div class="w-full justify-center text-center">
-  {#if roomID}
+  <!-- {#if roomID}
     <div class="m-4 rounded bg-[darkgray] p-4">
       <p>
         {roomID}
       </p>
     </div>
-  {/if}
+  {/if} -->
 
   <div class="m-4 rounded bg-[darkgray] p-4">
     <button onclick={startStreaming} aria-label="Start WebRTC">Start WebRTC</button>

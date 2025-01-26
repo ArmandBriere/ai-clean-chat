@@ -1,9 +1,3 @@
-const ICE_CANDIDATE = 'iceCandidate';
-const OFFER = 'offer';
-const ANSWER = 'answer';
-const STREAMING = 'streaming';
-const TRANSCRIPTION = 'transcription';
-
 interface IceCandidateMessage {
   type: string;
   candidate: RTCIceCandidateInit;
