@@ -28,6 +28,18 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+type Message struct {
+	Type      string `json:"type"`
+	Offer     string `json:"offer,omitempty"`
+	Answer    string `json:"answer,omitempty"`
+	Candidate struct {
+		Candidate        string `json:"candidate"`
+		SdpMid           string `json:"sdpMid"`
+		SdpMLineIndex    int    `json:"sdpMLineIndex"`
+		UsernameFragment string `json:"usernameFragment"`
+	} `json:"candidate,omitempty"`
+}
+
 type broadcastMsg struct {
 	Message map[string]interface{}
 	RoomID  string
