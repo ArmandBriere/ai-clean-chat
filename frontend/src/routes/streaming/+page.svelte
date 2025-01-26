@@ -11,8 +11,11 @@
   let peerConnection: RTCPeerConnection;
   let localStream: MediaStream;
 
-  // STUN/TURN servers for WebRTC
-  const iceServers = [{ urls: 'stun:stun.l.google.com:19302' }];
+  const ICE_CANDIDATE = 'iceCandidate';
+  const OFFER = 'offer';
+  const ANSWER = 'answer';
+  const STREAMING = 'streaming';
+  const TRANSCRIPTION = 'transcription';
 
   onMount(() => {
     // Connect to the signaling server
@@ -26,12 +29,14 @@
       const message = JSON.parse(event.data);
       console.log('Received signaling message:', message);
 
-      if (message.offer) {
-        await handleOffer(message.offer);
-      } else if (message.answer) {
-        await handleAnswer(message.answer);
-      } else if (message.iceCandidate) {
-        await handleIceCandidate(message.iceCandidate);
+      if (message.type === OFFER) {
+        await handleOffer(message.candidate);
+      } else if (message.type == ANSWER) {
+        console.log('Received answer:', message);
+        await handleAnswer(message.sdp);
+      } else if (message.type == ICE_CANDIDATE) {
+        console.log('Received ICE candidate:', message.candidate);
+        await handleIceCandidate(message.candidate);
       }
     };
 
@@ -72,12 +77,16 @@
   }
 
   function createPeerConnection() {
-    peerConnection = new RTCPeerConnection({ iceServers });
+    peerConnection = new RTCPeerConnection();
 
     // Handle ICE candidates
     peerConnection.onicecandidate = (event) => {
-      if (event.candidate) {
-        ws.send(JSON.stringify({ iceCandidate: event.candidate }));
+      if (event.type === 'icecandidate' && event.candidate) {
+        const message: WebSocketMessage = {
+          type: ICE_CANDIDATE,
+          candidate: event.candidate
+        };
+        ws.send(JSON.stringify(message));
       }
     };
 
@@ -91,24 +100,29 @@
 
     // Handle negotiation
     peerConnection.onnegotiationneeded = async () => {
-      try {
-        const offer = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offer);
-        ws.send(JSON.stringify({ offer }));
-      } catch (error) {
-        console.error('Error during negotiation:', error);
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+      if (offer.type === OFFER && offer) {
+        const offerMessage: WebSocketMessage = {
+          type: OFFER,
+          candidate: offer
+        };
+        ws.send(JSON.stringify(offerMessage));
       }
     };
   }
 
   async function handleOffer(offer: RTCSessionDescriptionInit) {
-    try {
-      await peerConnection.setRemoteDescription(offer);
-      const answer = await peerConnection.createAnswer();
-      await peerConnection.setLocalDescription(answer);
-      ws.send(JSON.stringify({ answer }));
-    } catch (error) {
-      console.error('Error handling offer:', error);
+    await peerConnection.setRemoteDescription(offer);
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
+
+    if (answer.type === ANSWER && answer.sdp) {
+      const answerMessage: any = {
+        type: ANSWER,
+        sdp: answer
+      };
+      ws.send(JSON.stringify(answerMessage));
     }
   }
 
@@ -120,7 +134,7 @@
     }
   }
 
-  async function handleIceCandidate(candidate: RTCIceCandidate) {
+  async function handleIceCandidate(candidate: any) {
     try {
       await peerConnection.addIceCandidate(candidate);
     } catch (error) {
@@ -146,7 +160,12 @@
 
     <div>
       <h2 class="text-lg font-semibold">Other User's Video</h2>
-      <video playsInline autoPlay class="w-full rounded-lg border shadow" bind:this={otherVideo}
+      <video
+        playsInline
+        autoPlay
+        muted
+        class="w-full rounded-lg border shadow"
+        bind:this={otherVideo}
       ></video>
     </div>
   </div>

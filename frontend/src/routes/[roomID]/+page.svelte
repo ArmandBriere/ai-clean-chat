@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from '$app/state';
   import { onMount, onDestroy } from 'svelte';
-  import { PUBLIC_SERVER_URL, PUBLIC_SERVER_WS_URL } from '$env/static/public';
+  import { PUBLIC_SERVER_WS_URL } from '$env/static/public';
 
   let roomID = page.params.roomID;
 
@@ -84,11 +84,12 @@
         }
         wsTranscription.onmessage = async (event) => {
           const message = JSON.parse(event.data);
-          if (message.type === 'answer') {
+          if (message.type === ANSWER) {
             let answer: AnswerMessage = {
-              type: 'answer',
+              type: ANSWER,
               sdp: message.sdp
             };
+            // @ts-ignore
             const remoteDesc = new RTCSessionDescription(answer);
             try {
               await pcTranscription?.setRemoteDescription(remoteDesc);
@@ -96,7 +97,7 @@
               console.error('Error setting remote description:', setRemoteDescError);
               cleanup();
             }
-          } else if (message.type === 'iceCandidate') {
+          } else if (message.type === ICE_CANDIDATE) {
             try {
               if (message.candidate) {
                 // Correctly parse the JSON string to an object
@@ -106,13 +107,13 @@
             } catch (e) {
               console.error('Error adding ICE candidate:', e);
             }
-          } else if (message.type === 'streaming') {
+          } else if (message.type === STREAMING) {
             if (message.isStreaming) {
               console.log('Starting streaming');
             } else {
               console.log('Stopping streaming');
             }
-          } else if (message.type === 'transcription') {
+          } else if (message.type === TRANSCRIPTION) {
             const updatedMessages = [...messages, message.text];
             messages = updatedMessages.slice(-25);
           }
