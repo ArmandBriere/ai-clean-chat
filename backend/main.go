@@ -15,8 +15,7 @@ func health(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	var allRooms server.RoomMap
-	allRooms.Init()
+	server.AllRooms.Init()
 
 	port := os.Getenv("PORT")
 	if port == "" {

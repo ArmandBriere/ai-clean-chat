@@ -7,8 +7,8 @@ import (
 )
 
 type Participant struct {
-	Host bool
-	Conn *websocket.Conn
+	UserID string
+	Conn   *websocket.Conn
 }
 
 type RoomMap struct {

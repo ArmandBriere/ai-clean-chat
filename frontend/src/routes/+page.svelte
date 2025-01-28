@@ -1,8 +1,18 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { PUBLIC_SERVER_URL } from '$env/static/public';
 
-  let meetingCode = $state('');
+  let meetingCode: string = $state('');
 
+  // getRoomID function to fetch the room ID from the backend
+  async function setRoomID() {
+    let resp = await fetch(`${PUBLIC_SERVER_URL}/api/backend/create`);
+    const { room_id } = await resp.json();
+
+    meetingCode = room_id;
+  }
+
+  // Check if the input is empty
   function isEmpty(item: string) {
     return item === '';
   }
@@ -14,10 +24,17 @@
     }
   }
 
-  function goToMeeting() {
-    if (!isEmpty(meetingCode)) {
-      goto(`/ws/${meetingCode}`); // Adjust route later with correct structure
+  // Redirect to the meeting page
+  async function goToMeeting() {
+    if (isEmpty(meetingCode)) {
+      await setRoomID();
     }
+    goto(`/chat/${meetingCode}`);
+  }
+
+  // Redirect to the streaming page
+  async function goToStreaming() {
+    goto('/streaming');
   }
 </script>
 
@@ -31,10 +48,20 @@
     </p>
   </div>
   <div class="flex w-full justify-center space-x-4">
-    <a href="/ws" class="flex items-center rounded bg-blue-600 px-5 py-3 font-medium text-white">
+    <button
+      onclick={goToMeeting}
+      class="flex items-center rounded bg-blue-600 px-5 py-3 font-medium text-white"
+    >
       <span class="material-symbols-outlined mr-2"> videocam </span>
       New meeting
-    </a>
+    </button>
+    <button
+      onclick={goToStreaming}
+      class="flex items-center rounded bg-blue-600 px-5 py-3 font-medium text-white"
+    >
+      <span class="material-symbols-outlined mr-2"> videocam </span>
+      Streaming
+    </button>
     <div class="flex items-center rounded border px-5 py-3 text-gray-600">
       <span class="material-symbols-outlined mr-2"> keyboard </span>
       <input

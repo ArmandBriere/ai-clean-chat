@@ -1,20 +1,20 @@
 interface IceCandidateMessage {
-  type: 'iceCandidate';
+  type: string;
   candidate: RTCIceCandidateInit;
 }
 
 interface OfferMessage {
-  type: 'offer';
+  type: string;
   sdp: string;
 }
 
 interface AnswerMessage {
-  type: 'answer';
+  type: string;
   sdp: string;
 }
 
 interface StreamingMessage {
-  type: 'streaming';
+  type: string;
   isStreaming: boolean;
 }
 
