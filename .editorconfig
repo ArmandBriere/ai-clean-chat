@@ -22,6 +22,6 @@ indent_size = 4
 [Makefile]
 indent_style = tab
 
-[*.go,*.svelte,*.ts]
+[*.{go,svelte,ts}]
 indent_style = space
 indent_size = 2
