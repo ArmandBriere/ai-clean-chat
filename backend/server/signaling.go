@@ -2,24 +2,22 @@ package server
 
 import (
 	"encoding/json"
-	"log"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
 
 var AllRooms RoomMap
 
+// CreateRoomRequestHandler handles the request to create a new room
 func CreateRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	roomID := AllRooms.CreateRoom()
-	type resp struct {
-		RoomID string `json:"room_id"`
-	}
 
-	log.Println(AllRooms.Map)
-	json.NewEncoder(w).Encode(resp{RoomID: roomID})
+	// Return the roomID as a JSON response
+	json.NewEncoder(w).Encode(RoomCreationResponse{RoomID: roomID})
 }
 
 var upgrader = websocket.Upgrader{
@@ -52,10 +50,18 @@ var broadcast = make(chan broadcastMsg)
 func broadcaster() {
 	for {
 		msg := <-broadcast
-		for _, client := range AllRooms.Map[msg.RoomID] {
+		for id, client := range AllRooms.Map[msg.RoomID] {
+			slog.Info("Client ID", "id", id)
 			if client.UserID != msg.UserID {
-				err := client.Conn.WriteJSON(msg.Message)
 
+				// Check if the connection is still open
+				if err := client.Conn.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(time.Second)); err != nil {
+					slog.Error("Client connection is closed", "err", err)
+					AllRooms.DeleteFromRoom(msg.RoomID, client.UserID)
+					continue
+				}
+
+				err := client.Conn.WriteJSON(msg.Message)
 				if err != nil {
 					slog.Error("An error occur while writing", "err", err)
 				}
@@ -67,6 +73,7 @@ func init() {
 	go broadcaster()
 }
 
+// JoinRoomRequestHandler handles the request to join a room and listen on the websocket connection
 func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 	roomID, ok := r.URL.Query()["roomID"]
 	if !ok {
@@ -80,20 +87,22 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ws, err := upgrader.Upgrade(w, r, nil)
-
+	wsConn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		slog.Error("Web Socket Upgrade Error", "err", err)
+		slog.Error("WebSocket connection upgrade failed", "Error", err)
 		return
 	}
+	defer wsConn.Close()
 
 	slog.Info("New Connection", "roomID", roomID)
 	slog.Info("New Connection", "roomID[0]", roomID[0])
-	AllRooms.InsertIntoRoom(roomID[0], userID[0], ws)
+	AllRooms.InsertIntoRoom(roomID[0], userID[0], wsConn)
 
+	// This is the main loop that listens for messages from the client
 	for {
 		var message map[string]interface{}
-		err := ws.ReadJSON(&message)
+		err := wsConn.ReadJSON(&message)
+
 		if err != nil {
 			slog.Error("Error reading JSON", "err", err)
 			return
@@ -103,10 +112,8 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 			Message: message,
 			RoomID:  roomID[0],
 			UserID:  userID[0],
-			Client:  ws,
+			Client:  wsConn,
 		}
-
-		// slog.Info("New message", "msg", broadcastMsg.Message)
 
 		broadcast <- broadcastMsg
 	}
