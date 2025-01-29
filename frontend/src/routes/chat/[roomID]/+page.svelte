@@ -5,6 +5,7 @@
 
   import { page } from '$app/state';
   let roomID = page.params.roomID;
+  console.log('roomID:', roomID);
 
   // Transcription
   let wsTranscription: WebSocket | null = null;
