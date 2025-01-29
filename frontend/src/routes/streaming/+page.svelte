@@ -48,14 +48,12 @@
 
     // Open the camera and set up local video
     openCamera();
+  });
 
-    return () => {
-      onDestroy(() => {
-        ws?.close();
-        peerConnection?.close();
-        localStream?.getTracks().forEach((track) => track.stop());
-      });
-    };
+  onDestroy(() => {
+    ws?.close();
+    peerConnection?.close();
+    localStream?.getTracks().forEach((track) => track.stop());
   });
 
   async function openCamera() {
