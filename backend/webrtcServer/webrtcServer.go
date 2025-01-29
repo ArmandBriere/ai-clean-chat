@@ -1,6 +1,7 @@
 package webrtcserver
 
 import (
+	"context"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -68,8 +69,9 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 	// Streaming flag to start/stop audio transcription
 	isStreaming := false
-	// Quit signal that stops the transcription and delete resources
-	quit := make(chan bool)
+
+	// Done signal that stops the transcription and delete resources
+	ctx, cancel := context.WithCancel(context.Background())
 
 	// Handle incoming audio
 	peerConnection.OnTrack(func(track *webrtc.TrackRemote, receiver *webrtc.RTPReceiver) {
@@ -79,7 +81,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		if codecName == webrtc.MimeTypeOpus {
 			slog.Info("Track has started")
 
-			go handleAudioStream(track, &isStreaming, quit, wsConn)
+			go handleAudioStream(track, &isStreaming, ctx, wsConn)
 		}
 	})
 
@@ -87,8 +89,8 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		_, message, err := wsConn.ReadMessage()
 		if err != nil {
 			slog.Error("Read message error", "error", err)
-			slog.Info("Quit signal sent")
-			quit <- true
+			slog.Info("Cancel the context")
+			cancel()
 			return
 		}
 

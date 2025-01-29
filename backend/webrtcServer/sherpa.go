@@ -1,6 +1,7 @@
 package webrtcserver
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"log/slog"
@@ -46,7 +47,7 @@ func init() {
 }
 
 // Transcribe transcribes the audio stream
-func transcribe(track *webrtc.TrackRemote, isStreaming *bool, quit chan bool, wsConn *websocket.Conn) {
+func transcribe(track *webrtc.TrackRemote, isStreaming *bool, ctx context.Context, wsConn *websocket.Conn) {
 
 	var last_text string
 	segment_idx := 0
@@ -59,8 +60,8 @@ func transcribe(track *webrtc.TrackRemote, isStreaming *bool, quit chan bool, ws
 
 	for {
 		select {
-		case <-quit:
-			slog.Info("Transcription stopped by quit signal")
+		case <-ctx.Done():
+			slog.Info("Transcription stopped by the context")
 			return
 		default:
 			rtpPacket, _, err := track.ReadRTP()

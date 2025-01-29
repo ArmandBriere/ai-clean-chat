@@ -10,6 +10,7 @@ import (
 	webrtcServer "profanity.com/webrtcServer"
 )
 
+// health is a simple health check handler
 func health(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Health Check")
 }
@@ -26,12 +27,11 @@ func main() {
 	http.HandleFunc("/create", server.CreateRoomRequestHandler)
 	http.HandleFunc("/join", server.JoinRoomRequestHandler)
 
+	// Add the WebRTC handle for transcription
 	webrtcServer.AddWebRTCHandle()
 
-	log.Println("starting Server on port " + port)
-
+	log.Println("Starting server on port " + port)
 	err := http.ListenAndServe(":"+port, nil)
-
 	if err != nil {
 		log.Fatal((err))
 	}

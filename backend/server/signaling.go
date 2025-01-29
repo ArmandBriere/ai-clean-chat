@@ -26,18 +26,6 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-type Message struct {
-	Type      string `json:"type"`
-	Offer     string `json:"offer,omitempty"`
-	Answer    string `json:"answer,omitempty"`
-	Candidate struct {
-		Candidate        string `json:"candidate"`
-		SdpMid           string `json:"sdpMid"`
-		SdpMLineIndex    int    `json:"sdpMLineIndex"`
-		UsernameFragment string `json:"usernameFragment"`
-	} `json:"candidate,omitempty"`
-}
-
 type broadcastMsg struct {
 	Message map[string]interface{}
 	RoomID  string
@@ -47,13 +35,13 @@ type broadcastMsg struct {
 
 var broadcast = make(chan broadcastMsg)
 
+// broadcaster is a goroutine that listens for messages from the broadcast channel and sends them to all clients in the room
 func broadcaster() {
 	for {
 		msg := <-broadcast
-		for id, client := range AllRooms.Map[msg.RoomID] {
-			slog.Info("Client ID", "id", id)
+		for _, client := range AllRooms.Map[msg.RoomID] {
+			// Don't send the message back to the sender
 			if client.UserID != msg.UserID {
-
 				// Check if the connection is still open
 				if err := client.Conn.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(time.Second)); err != nil {
 					slog.Error("Client connection is closed", "err", err)
@@ -69,21 +57,24 @@ func broadcaster() {
 		}
 	}
 }
+
 func init() {
 	go broadcaster()
 }
 
 // JoinRoomRequestHandler handles the request to join a room and listen on the websocket connection
 func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
-	roomID, ok := r.URL.Query()["roomID"]
-	if !ok {
+	roomID := r.URL.Query().Get("roomID")
+	if roomID == "" {
 		slog.Info("RoomID missing in URL Parameters")
+		http.Error(w, "RoomID missing in URL Parameters", http.StatusBadRequest)
 		return
 	}
 
-	userID, ok := r.URL.Query()["userID"]
-	if !ok {
+	userID := r.URL.Query().Get("userID")
+	if userID == "" {
 		slog.Info("userID missing in URL Parameters")
+		http.Error(w, "userID missing in URL Parameters", http.StatusBadRequest)
 		return
 	}
 
@@ -94,9 +85,7 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer wsConn.Close()
 
-	slog.Info("New Connection", "roomID", roomID)
-	slog.Info("New Connection", "roomID[0]", roomID[0])
-	AllRooms.InsertIntoRoom(roomID[0], userID[0], wsConn)
+	AllRooms.InsertIntoRoom(roomID, userID, wsConn)
 
 	// This is the main loop that listens for messages from the client
 	for {
@@ -110,8 +99,8 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 
 		broadcastMsg := broadcastMsg{
 			Message: message,
-			RoomID:  roomID[0],
-			UserID:  userID[0],
+			RoomID:  roomID,
+			UserID:  userID,
 			Client:  wsConn,
 		}
 
