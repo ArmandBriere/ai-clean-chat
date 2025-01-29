@@ -2,8 +2,16 @@
 
 ## Requirements
 
+Linux (as you should)
+
 ```bash
 sudo apt install libopus-dev libopusfile-dev
+```
+
+MacOS
+
+```bash
+brew install opus opusfile
 ```
 
 ## WebRTC offers
