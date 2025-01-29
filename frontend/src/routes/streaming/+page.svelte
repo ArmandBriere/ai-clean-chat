@@ -146,7 +146,7 @@
   }
 </script>
 
-<main class="container mx-auto p-4">
+<main class="p-4">
   <h1 class="mb-4 text-xl font-bold">Svelte WebRTC Video Chat</h1>
 
   <div class="grid grid-cols-2 gap-4">
