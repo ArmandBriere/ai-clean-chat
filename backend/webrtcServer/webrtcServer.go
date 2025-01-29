@@ -81,7 +81,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		if codecName == webrtc.MimeTypeOpus {
 			slog.Info("Track has started")
 
-			go handleAudioStream(track, &isStreaming, ctx, wsConn)
+			go handleAudioStream(ctx, track, &isStreaming, wsConn)
 		}
 	})
 

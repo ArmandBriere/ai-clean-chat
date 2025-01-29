@@ -30,8 +30,8 @@ func getFileAndWriter(writer *oggwriter.OggWriter) (*os.File, *oggwriter.OggWrit
 }
 
 // handleAudioStream handles the audio stream by writing it to file
-func handleAudioStream(track *webrtc.TrackRemote, isStreaming *bool, ctx context.Context, wsConn *websocket.Conn) {
+func handleAudioStream(ctx context.Context, track *webrtc.TrackRemote, isStreaming *bool, wsConn *websocket.Conn) {
 
 	// This take the audio stream for ever
-	transcribe(track, isStreaming, ctx, wsConn)
+	transcribe(ctx, track, isStreaming, wsConn)
 }

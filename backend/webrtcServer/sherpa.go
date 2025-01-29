@@ -47,7 +47,7 @@ func init() {
 }
 
 // Transcribe transcribes the audio stream
-func transcribe(track *webrtc.TrackRemote, isStreaming *bool, ctx context.Context, wsConn *websocket.Conn) {
+func transcribe(ctx context.Context, track *webrtc.TrackRemote, isStreaming *bool, wsConn *websocket.Conn) {
 
 	var last_text string
 	segment_idx := 0
