@@ -15,3 +15,7 @@ type RoomMap struct {
 	Mutex sync.RWMutex
 	Map   map[string][]Participant
 }
+
+type RoomCreationResponse struct {
+	RoomID string `json:"room_id"`
+}
