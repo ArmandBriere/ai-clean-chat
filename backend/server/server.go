@@ -84,5 +84,6 @@ func (r *RoomMap) DeleteRoom(roomID string) {
 	r.Mutex.Lock()
 	defer r.Mutex.Unlock()
 
+	slog.Info("Deleting Room", "roomID", roomID)
 	delete(r.Map, roomID)
 }
