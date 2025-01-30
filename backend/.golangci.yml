@@ -13,3 +13,5 @@ linters:
 issues:
   exclude-dirs:
     - sherpa-onnx/*
+  exclude-files:
+    - webrtcServer/sherpa.go # Opus is needed for golangci-lint to work
