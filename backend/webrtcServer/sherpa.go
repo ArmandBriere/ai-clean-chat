@@ -1,4 +1,4 @@
-//nolint:all
+//nolint:unparam
 package webrtcserver
 
 import (
