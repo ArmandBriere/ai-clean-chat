@@ -147,47 +147,23 @@
 </script>
 
 <div
-  class="grid grid-cols-[2fr_1fr] grid-rows-[20vh_70vh_10vh] bg-[rgb(15,15,15)] text-neutral-300 [grid-template-areas:'._h'_'m_m'_'f_f']"
+  class="grid grid-cols-[2fr_1fr] grid-rows-[90vh_10vh] bg-[rgb(25,25,25)] text-neutral-300 [grid-template-areas:'m_m'_'f_f']"
 >
   <header class="[grid-area:h]"></header>
-  <main class="[grid-area:m]">
-    <div class="mx-12">
-      <h2 class="text-lg font-semibold">Your Video</h2>
+  <main class="relative [grid-area:m]">
+    <div class="relative h-full w-full p-4">
+      <div class="absolute h-full w-full origin-bottom-right transition-all">
+        <video playsInline autoPlay muted class="mx-auto h-full rounded-lg" bind:this={userVideo}
+        ></video>
+      </div>
       <video
         playsInline
         autoPlay
         muted
-        class="w-full rounded-lg border shadow"
-        bind:this={userVideo}
+        class="absolute bottom-8 right-8 max-w-64 rounded-lg"
+        bind:this={otherVideo}
       ></video>
     </div>
   </main>
   <footer class="[grid-area:f]"></footer>
 </div>
-<!-- <main class="flex h-svh flex-col"> -->
-<!--   <h1 class="mb-4 text-xl font-bold">Svelte WebRTC Video Chat</h1> -->
-<!---->
-<!--   <div class="grid grid-cols-2 gap-4"> -->
-<!--     <div> -->
-<!--       <h2 class="text-lg font-semibold">Your Video</h2> -->
-<!--       <video -->
-<!--         playsInline -->
-<!--         autoPlay -->
-<!--         muted -->
-<!--         class="w-full rounded-lg border shadow" -->
-<!--         bind:this={userVideo} -->
-<!--       ></video> -->
-<!--     </div> -->
-<!---->
-<!--     <div> -->
-<!--       <h2 class="text-lg font-semibold">Other User's Video</h2> -->
-<!--       <video -->
-<!--         playsInline -->
-<!--         autoPlay -->
-<!--         muted -->
-<!--         class="w-full rounded-lg border shadow" -->
-<!--         bind:this={otherVideo} -->
-<!--       ></video> -->
-<!--     </div> -->
-<!--   </div> -->
-<!-- </main> -->
