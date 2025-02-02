@@ -10,8 +10,8 @@
   } from '@/lib/constants/types';
 
   let roomID: string = 'example-room'; // Will be replaced with dynamic room ID
-  let userVideo: HTMLVideoElement;
-  let otherVideo: HTMLVideoElement;
+  let userVideo: HTMLVideoElement = $state() as HTMLVideoElement;
+  let otherVideo: HTMLVideoElement = $state() as HTMLVideoElement;
 
   let ws: WebSocket;
   let peerConnection: RTCPeerConnection;
@@ -146,24 +146,55 @@
   }
 </script>
 
-<div
-  class="grid grid-cols-[2fr_1fr] grid-rows-[90vh_10vh] bg-[rgb(25,25,25)] text-neutral-300 [grid-template-areas:'m_m'_'f_f']"
->
-  <header class="[grid-area:h]"></header>
-  <main class="relative [grid-area:m]">
-    <div class="relative h-full w-full p-4">
-      <div class="absolute h-full w-full origin-bottom-right transition-all">
-        <video playsInline autoPlay muted class="mx-auto h-full rounded-lg" bind:this={userVideo}
-        ></video>
+<main class="flex min-h-screen flex-col items-center justify-center bg-[rgb(25,25,25)] p-24">
+  <div class="relative aspect-video w-full max-w-5xl overflow-hidden rounded-lg bg-gray-900">
+    <div class="relative aspect-video w-full max-w-5xl overflow-hidden rounded-lg bg-gray-900">
+      <div class={`h-full w-full opacity-100 transition-opacity duration-500`}>
+        <div class="h-full w-full overflow-hidden rounded-lg border-2 border-white">
+          <video
+            class="h-full w-full object-cover"
+            autoPlay
+            playsInline
+            muted
+            bind:this={otherVideo}
+          >
+            Your browser does not support the video tag.
+          </video>
+        </div>
       </div>
-      <video
-        playsInline
-        autoPlay
-        muted
-        class="absolute bottom-8 right-8 max-w-64 rounded-lg"
-        bind:this={otherVideo}
-      ></video>
+      <div
+        class={`absolute bottom-4 right-4 z-30 aspect-video w-1/4 transition-all duration-500 ease-in-out`}
+      >
+        <div
+          class={`h-full w-full overflow-hidden rounded-lg ${
+            otherVideo?.srcObject ? 'border-2 border-white' : 'border-2 border-white shadow-lg'
+          }`}
+        >
+          <video
+            class="h-full w-full object-cover"
+            autoPlay
+            muted
+            playsInline
+            bind:this={userVideo}
+          >
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      </div>
+      <!-- <div class="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 transform space-x-4"> -->
+      <!--   <button -->
+      <!--     onClick={() => setIsMicOn(!isMicOn)} -->
+      <!--     class={`rounded-full p-3 ${isMicOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`} -->
+      <!--   > -->
+      <!--     {isMicOn ? <Mic /> : <MicOff />} -->
+      <!--   </button> -->
+      <!--   <button -->
+      <!--     onClick={() => setIsVideoOn(!isVideoOn)} -->
+      <!--     class={`rounded-full p-3 ${isVideoOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`} -->
+      <!--   > -->
+      <!--     {isVideoOn ? <Video /> : <VideoOff />} -->
+      <!--   </button> -->
+      <!-- </div> -->
     </div>
-  </main>
-  <footer class="[grid-area:f]"></footer>
-</div>
+  </div>
+</main>
