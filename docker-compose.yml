@@ -19,6 +19,7 @@ services:
       context: ./frontend
     volumes:
       - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules
       # - $HOME/.deno:/deno-dir
     ports:
       - "3000:3000"
