@@ -8,6 +8,7 @@
     StreamingAnswerMessage,
     StreamingIceCandidateMessage
   } from '@/lib/constants/types';
+  import ButtonOption from '@/lib/components/ButtonOption.svelte';
 
   let roomID: string = 'example-room'; // Will be replaced with dynamic room ID
   let userVideo: HTMLVideoElement;
@@ -18,6 +19,11 @@
   let localStream: MediaStream;
 
   let connectedUsers = $state(1);
+  let isMicOn = $state(true);
+  let isVideoOn = $state(true);
+  let isClosedCaptionOn = $state(true);
+  let isMoodOn = $state(true);
+  let isBackHandOn = $state(true);
 
   onMount(() => {
     console.log(otherVideo?.srcObject);
@@ -151,42 +157,76 @@
 </script>
 
 <main class="flex min-h-screen flex-col items-center justify-center bg-[rgb(25,25,25)] p-24">
-  <div class="relative aspect-video w-full max-w-5xl overflow-hidden rounded-lg bg-gray-900">
-    <div
-      class={`h-full w-full ${connectedUsers === 2 ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}
-    >
-      <div class="h-full w-full overflow-hidden rounded-lg border-2 border-white">
-        <video class="h-full w-full object-cover" autoPlay playsInline muted bind:this={otherVideo}>
-          Your browser does not support the video tag.
-        </video>
-      </div>
-    </div>
-    <div
-      class={`absolute ${connectedUsers === 2 ? 'bottom-4 right-4 z-30 aspect-video w-1/4' : 'inset-0 z-10'} transition-all duration-500 ease-in-out`}
-    >
+  <div class="relative w-full max-w-5xl">
+    <div class="relative aspect-video w-full overflow-hidden rounded-lg bg-gray-900">
       <div
-        class={`h-full w-full overflow-hidden rounded-lg ${
-          connectedUsers === 2 ? 'border-2 border-white' : 'border-2 border-white shadow-lg'
-        }`}
+        class={`h-full w-full ${connectedUsers === 2 ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}
       >
-        <video class="h-full w-full object-cover" autoPlay muted playsInline bind:this={userVideo}>
-          Your browser does not support the video tag.
-        </video>
+        <div class="h-full w-full overflow-hidden rounded-lg border-2 border-white">
+          <video
+            class="h-full w-full object-cover"
+            autoPlay
+            playsInline
+            muted
+            bind:this={otherVideo}
+          >
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      </div>
+      <div
+        class={`absolute ${connectedUsers === 2 ? 'bottom-4 right-4 z-30 aspect-video w-1/4' : 'inset-0 z-10'} transition-all duration-500 ease-in-out`}
+      >
+        <div
+          class={`h-full w-full overflow-hidden rounded-lg ${
+            connectedUsers === 2 ? 'border-2 border-white' : 'border-2 border-white shadow-lg'
+          }`}
+        >
+          <video
+            class="h-full w-full object-cover"
+            autoPlay
+            muted
+            playsInline
+            bind:this={userVideo}
+          >
+            Your browser does not support the video tag.
+          </video>
+        </div>
       </div>
     </div>
-    <!-- <div class="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 transform space-x-4"> -->
-    <!--   <button -->
-    <!--     onClick={() => setIsMicOn(!isMicOn)} -->
-    <!--     class={`rounded-full p-3 ${isMicOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`} -->
-    <!--   > -->
-    <!--     {isMicOn ? <Mic /> : <MicOff />} -->
-    <!--   </button> -->
-    <!--   <button -->
-    <!--     onClick={() => setIsVideoOn(!isVideoOn)} -->
-    <!--     class={`rounded-full p-3 ${isVideoOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`} -->
-    <!--   > -->
-    <!--     {isVideoOn ? <Video /> : <VideoOff />} -->
-    <!--   </button> -->
-    <!-- </div> -->
+    <div class="relative mt-4 flex w-full justify-center space-x-4">
+      <button
+        onclick={() => (isMicOn = !isMicOn)}
+        class={`my-auto flex rounded-full p-3 ${isMicOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
+      >
+        <span class="material-symbols-outlined"> mic </span>
+      </button>
+      <button
+        onclick={() => (isVideoOn = !isVideoOn)}
+        class={`my-auto flex items-center justify-center rounded-full p-3 ${isVideoOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
+      >
+        <span class="material-symbols-outlined"> videocam </span>
+      </button>
+      <button
+        onclick={() => (isClosedCaptionOn = !isClosedCaptionOn)}
+        class={`my-auto flex items-center justify-center rounded-full p-3 ${isClosedCaptionOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
+      >
+        <span class="material-symbols-outlined"> closed_caption </span>
+      </button>
+      <button
+        onclick={() => (isMoodOn = !isMoodOn)}
+        class={`my-auto flex items-center justify-center rounded-full p-3 ${isMoodOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
+      >
+        <span class="material-symbols-outlined"> mood </span>
+      </button>
+      <button
+        onclick={() => (isBackHandOn = !isBackHandOn)}
+        class={`my-auto flex items-center justify-center rounded-full p-3 ${isBackHandOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
+      >
+        <span class="material-symbols-outlined"> back_hand </span>
+      </button>
+      <ButtonOption class="px-2 py-3">more_vert</ButtonOption>
+      <ButtonOption class="bg-red-500 p-3 text-white">call_end</ButtonOption>
+    </div>
   </div>
 </main>
