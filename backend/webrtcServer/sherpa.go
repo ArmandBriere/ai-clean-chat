@@ -22,12 +22,6 @@ func init() {
 	config := sherpa.OnlineRecognizerConfig{}
 	config.FeatConfig = sherpa.FeatureConfig{SampleRate: MODEL_SAMPLE_RATE, FeatureDim: 80}
 
-	// Zipformer2 configuration
-	// config.ModelConfig.Zipformer2Ctc.Model = "./sherpa-onnx-streaming-zipformer-ctc-small-2024-03-18/ctc-epoch-30-avg-3-chunk-16-left-128.int8.onnx"
-	// config.ModelConfig.Tokens = "./sherpa-onnx-streaming-zipformer-ctc-small-2024-03-18/tokens.txt"
-	// config.CtcFstDecoderConfig.Graph = "./sherpa-onnx-streaming-zipformer-ctc-small-2024-03-18/HLG.fst"
-	// config.ModelConfig.ModelType = "zipformer2"
-
 	config.ModelConfig.NumThreads = 8
 	config.ModelConfig.Debug = 0
 	config.ModelConfig.Provider = "cpu"
