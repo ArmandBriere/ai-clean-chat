@@ -1,0 +1,152 @@
+{
+  "dataset": [
+    {
+      "category": "profane",
+      "sentence": "Oh, shut up already."
+    },
+    {
+      "category": "profane",
+      "sentence": "You're such a pain in the ass."
+    },
+    {
+      "category": "profane",
+      "sentence": "That guy is a jerk."
+    },
+    {
+      "category": "profane",
+      "sentence": "Don't be a smartass."
+    },
+    {
+      "category": "profane",
+      "sentence": "You screwed up big time."
+    },
+    {
+      "category": "profane",
+      "sentence": "Get your crap together."
+    },
+    {
+      "category": "profane",
+      "sentence": "He's a total idiot."
+    },
+    {
+      "category": "profane",
+      "sentence": "That was a shitty experience."
+    },
+    {
+      "category": "profane",
+      "sentence": "You're such a dumbass."
+    },
+    {
+      "category": "profane",
+      "sentence": "Stop being an ass."
+    },
+    {
+      "category": "profane",
+      "sentence": "Get your shit together."
+    },
+    {
+      "category": "profane",
+      "sentence": "This place is a goddamn mess."
+    },
+    {
+      "category": "profane",
+      "sentence": "That's some serious bullshit."
+    },
+    {
+      "category": "profane",
+      "sentence": "You're a pain in my ass."
+    },
+    {
+      "category": "profane",
+      "sentence": "I can't believe this crap."
+    },
+    {
+      "category": "profane",
+      "sentence": "What the hell is wrong with you?"
+    },
+    {
+      "category": "profane",
+      "sentence": "You're a f***ing moron."
+    },
+    {
+      "category": "profane",
+      "sentence": "Get the f*** out of here."
+    },
+    {
+      "category": "profane",
+      "sentence": "That's a motherf***ing disaster."
+    },
+    {
+      "category": "profane",
+      "sentence": "Go f*** yourself."
+    },
+    {
+      "category": "profane",
+      "sentence": "He's a piece of s***."
+    },
+    {
+      "category": "profane",
+      "sentence": "Shut the f*** up."
+    },
+    {
+      "category": "profane",
+      "sentence": "You're such a goddamn loser."
+    },
+    {
+      "category": "profane",
+      "sentence": "This is some f***ed up nonsense."
+    },
+    {
+      "category": "profane",
+      "sentence": "That guy is a total c***."
+    },
+    {
+      "category": "profane",
+      "sentence": "You're nothing but a worthless f***."
+    },
+    {
+      "category": "non_profane",
+      "sentence": "I had a great time at the park today."
+    },
+    {
+      "category": "non_profane",
+      "sentence": "She made an amazing dinner last night."
+    },
+    {
+      "category": "non_profane",
+      "sentence": "This is my favorite book of all time."
+    },
+    {
+      "category": "non_profane",
+      "sentence": "He's really good at his job."
+    },
+    {
+      "category": "non_profane",
+      "sentence": "The weather is perfect outside."
+    },
+    {
+      "category": "non_profane",
+      "sentence": "I'm looking forward to the weekend."
+    },
+    {
+      "category": "non_profane",
+      "sentence": "That was an incredible performance."
+    },
+    {
+      "category": "non_profane",
+      "sentence": "I just finished my workout."
+    },
+    {
+      "category": "non_profane",
+      "sentence": "We should go to the beach sometime."
+    },
+    {
+      "category": "non_profane",
+      "sentence": "This is such an exciting moment."
+    },
+    {
+      "category": "non_profane",
+      "sentence": "That was a damn good game!"
+    }
+  ]
+}
