@@ -1,8 +1,18 @@
-from class_model import ProfanityModel
+import logging
+
 from flask import Flask, jsonify, request
 from flask_cors import cross_origin
 
+from class_model import ProfanityModel
+
+# Configure logging to show INFO messages
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
 app = Flask(__name__)
+
+model = ProfanityModel()
+logging.info("Start loading the model...")
+model.load_model()
 
 
 @app.route("/insult", methods=["POST"])
@@ -21,8 +31,12 @@ def post_insult():
     return response
 
 
-if __name__ == "__main__":
-    model = ProfanityModel()
-    model.load_model()
+@app.route("/health", methods=["GET"])
+@cross_origin()
+def health():
+    return {"status": "healthy"}
 
+
+
+if __name__ == "__main__":
     app.run()

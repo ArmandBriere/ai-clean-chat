@@ -20,3 +20,6 @@ whisper.cpp/
 __pycache__/
 .ruff_cache/
 .venv/
+
+# Bert model
+bert/
