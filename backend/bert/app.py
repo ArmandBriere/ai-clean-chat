@@ -15,9 +15,9 @@ logging.info("Start loading the model...")
 model.load_model()
 
 
-@app.route("/insult", methods=["POST"])
+@app.route("/profanity", methods=["POST"])
 @cross_origin()
-def post_insult():
+def post_profanity():
     data = request.get_json()
 
     if "text" not in data:
