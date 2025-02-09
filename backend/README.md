@@ -27,6 +27,14 @@ cd backend
 ./download-model.sh
 ```
 
+### Tests
+
+Some test are written inside the webrtcServer package for the profanity handling. To run them:
+
+```bash
+go test -tags=profanity ./webrtcServer
+```
+
 ### Python
 
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/):
