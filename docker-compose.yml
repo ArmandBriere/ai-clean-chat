@@ -7,8 +7,8 @@ services:
       - "80:80"  # HTTP access
       - "8080:8080"  # Traefik dashboard
     volumes:
-      - "./traefik/dynamic:/etc/traefik/dynamic"  # Mount for dynamic config
-      - "./traefik/traefik.yml:/etc/traefik/traefik.yml:ro"  # Mount static config
+      - "./traefik/dynamic:/etc/traefik/dynamic"
+      - "./traefik/traefik.yml:/etc/traefik/traefik.yml:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - ./traefik/certs/:/var/traefik/certs/:rw
     restart: unless-stopped
