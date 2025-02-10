@@ -1,3 +1,5 @@
+//go:build !profanity
+
 package webrtcserver
 
 import (

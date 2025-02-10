@@ -16,3 +16,12 @@ type WebSocketTranscription struct {
 	Type string `json:"type"`
 	Text string `json:"text"`
 }
+
+// Profanity structs
+type PostData struct {
+	Text string `json:"text"`
+}
+
+type PostResponse struct {
+	ProfanityScore float64 `json:"profanity_score"`
+}

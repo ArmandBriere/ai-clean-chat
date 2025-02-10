@@ -1,0 +1,7 @@
+# Data
+# bert_data
+
+# Python
+__pycache__
+.ruff_cache/
+.venv/

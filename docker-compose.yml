@@ -7,8 +7,8 @@ services:
       - "80:80"  # HTTP access
       - "8080:8080"  # Traefik dashboard
     volumes:
-      - "./traefik/dynamic:/etc/traefik/dynamic"  # Mount for dynamic config
-      - "./traefik/traefik.yml:/etc/traefik/traefik.yml:ro"  # Mount static config
+      - "./traefik/dynamic:/etc/traefik/dynamic"
+      - "./traefik/traefik.yml:/etc/traefik/traefik.yml:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - ./traefik/certs/:/var/traefik/certs/:rw
     restart: unless-stopped
@@ -17,6 +17,7 @@ services:
     build:
       dockerfile: Dockerfile.dev
       context: ./frontend
+    container_name: ai-clean-chat-svelte
     volumes:
       - ./frontend:/usr/src/app
       # - $HOME/.deno:/deno-dir
@@ -29,12 +30,23 @@ services:
   backend:
     build:
       context: ./backend/
+    container_name: ai-clean-chat-go
     environment:
       - PORT=8080
     volumes:
       - ./backend:/app
     ports:
       - "8082:8080"
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+
+  profanity:
+    build:
+      context: ./backend/bert/
+    container_name: ai-clean-chat-bert
+    ports:
+      - "8081:8080"
     restart: unless-stopped
     labels:
       - "traefik.enable=true"

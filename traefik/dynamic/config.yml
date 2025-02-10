@@ -1,31 +1,46 @@
 http:
   routers:
     frontend-router-http:
-      rule: "Host(`ai-clean-chat.home.site`)"  # Match the hostname
+      rule: "Host(`ai-clean-chat.home.site`)"
       entryPoints:
         - web
       service: frontend-service
 
-    backend-router-http:
-      rule: "Host(`ai-clean-chat.home.site`) && PathPrefix(`/api/backend/`)"  # Match the API path
-      entryPoints:
-        - web
-      service: backend-service
-
     frontend-router-https:
-      rule: "Host(`ai-clean-chat.home.site`)"  # Match the hostname
+      rule: "Host(`ai-clean-chat.home.site`)"
       entryPoints:
         - websecure
       service: frontend-service
       tls: true
 
+    backend-router-http:
+      rule: "Host(`ai-clean-chat.home.site`) && PathPrefix(`/api/backend/`)"
+      entryPoints:
+        - web
+      service: backend-service
+
     backend-router-https:
-      rule: "Host(`ai-clean-chat.home.site`) && PathPrefix(`/api/backend/`)"  # Match the API path
+      rule: "Host(`ai-clean-chat.home.site`) && PathPrefix(`/api/backend/`)"
       entryPoints:
         - websecure
       service: backend-service
       middlewares:
         - strip-api-prefix
+      tls: true
+
+    profanity-router-http:
+      rule: "Host(`ai-clean-chat.home.site`) && PathPrefix(`/api/profanity/`)"
+      entryPoints:
+        - web
+      service: profanity-service
+
+    profanity-router-https:
+      rule: "Host(`ai-clean-chat.home.site`) && PathPrefix(`/api/profanity/`)"
+      entryPoints:
+        - websecure
+      service: profanity-service
+      middlewares:
+        - strip-profanity-prefix
       tls: true
 
   services:
@@ -38,13 +53,23 @@ http:
       loadBalancer:
         servers:
           - url: "http://backend:8080"
-        passHostHeader: true  # Ensures Host header is passed to backend
+        passHostHeader: true
+
+    profanity-service:
+      loadBalancer:
+        servers:
+          - url: "http://profanity:8080"
+        passHostHeader: true
 
   middlewares:
     strip-api-prefix:
       stripPrefix:
         prefixes:
           - "/api/backend"
+    strip-profanity-prefix:
+      stripPrefix:
+        prefixes:
+          - "/api/profanity"
 tls:
   certificates:
     - certFile: /var/traefik/certs/ai-clean-chat.home.site.pem
