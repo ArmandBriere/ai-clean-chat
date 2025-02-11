@@ -17,7 +17,16 @@
   let peerConnection: RTCPeerConnection;
   let localStream: MediaStream;
 
+  let connectedUsers = $state(1);
+
+  let isMicOn = $state(true);
+  let isVideoOn = $state(true);
+  let isClosedCaptionOn = $state(true);
+  let isMoodOn = $state(true);
+  let isBackHandOn = $state(true);
+
   onMount(() => {
+    console.log(otherVideo?.srcObject);
     // Connect to the signaling server
     ws = new WebSocket(`${PUBLIC_SERVER_WS_URL}/join?roomID=${roomID}&userID=${v4()}`);
 
@@ -51,9 +60,7 @@
   });
 
   onDestroy(() => {
-    ws?.close();
-    peerConnection?.close();
-    localStream?.getTracks().forEach((track) => track.stop());
+    stopMediaTracks();
   });
 
   async function openCamera() {
@@ -95,6 +102,7 @@
       console.log('Received remote track:', event.streams);
       if (event.streams.length > 0) {
         otherVideo.srcObject = event.streams[0];
+        connectedUsers = 2;
       }
     };
 
@@ -108,6 +116,14 @@
           payload: offer
         };
         ws.send(JSON.stringify(offerMessage));
+      }
+    };
+
+    // Handle connection state changes
+    peerConnection.onconnectionstatechange = () => {
+      console.log('Connection state:', peerConnection.connectionState);
+      if (peerConnection.connectionState === 'disconnected') {
+        connectedUsers = 1;
       }
     };
   }
@@ -144,38 +160,119 @@
       console.error('Error adding received ICE candidate:', error);
     }
   }
+
+  const toggleCamera = () => {
+    const tracks = localStream.getVideoTracks();
+    tracks[0].enabled = !tracks[0].enabled;
+    isVideoOn = tracks[0].enabled;
+  };
+  const toggleMic = () => {
+    const tracks = localStream.getAudioTracks();
+    tracks[0].enabled = !tracks[0].enabled;
+    isMicOn = tracks[0].enabled;
+  };
+  const stopMediaTracks = () => {
+    ws?.close();
+    peerConnection?.close();
+    localStream?.getTracks().forEach((track) => track.stop());
+  };
+  const handleHangUp = () => {
+    // TODO: Emit message to propagate user disconnecting. Find a way to remove the remote video and update the UI.
+    // TODO: Use a modal to confirm hanging up to prevent clicking by mistake
+    stopMediaTracks();
+  };
+
+  const handleClosedCaption = () => {
+    // TODO: Activate or deactivate Closed Caption with profanity detection
+    isClosedCaptionOn = !isClosedCaptionOn;
+  };
 </script>
 
-<main class="container mx-auto p-4">
-  <h1 class="mb-4 text-xl font-bold">Svelte WebRTC Video Chat</h1>
-
-  <div class="grid grid-cols-2 gap-4">
-    <div>
-      <h2 class="text-lg font-semibold">Your Video</h2>
-      <video
-        playsInline
-        autoPlay
-        muted
-        class="w-full rounded-lg border shadow"
-        bind:this={userVideo}
-      ></video>
+<main class="flex min-h-screen flex-col items-center justify-center bg-[rgb(25,25,25)] p-24">
+  <div class="relative w-full max-w-5xl">
+    <div class="relative aspect-video w-full overflow-hidden rounded-lg bg-gray-900">
+      <div
+        class={`h-full w-full ${connectedUsers === 2 ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}
+      >
+        <div class="h-full w-full overflow-hidden rounded-lg border-2 border-white">
+          <video
+            class="h-full w-full object-cover"
+            autoPlay
+            playsInline
+            muted
+            bind:this={otherVideo}
+          >
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      </div>
+      <div
+        class={`absolute ${connectedUsers === 2 ? 'bottom-4 right-4 z-30 aspect-video w-1/4' : 'inset-0 z-10'} transition-all duration-500 ease-in-out`}
+      >
+        <div
+          class={`h-full w-full overflow-hidden rounded-lg ${
+            connectedUsers === 2 ? 'border-2 border-white' : 'border-2 border-white shadow-lg'
+          }`}
+        >
+          <video
+            class="h-full w-full object-cover"
+            autoPlay
+            muted
+            playsInline
+            bind:this={userVideo}
+          >
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      </div>
     </div>
-
-    <div>
-      <h2 class="text-lg font-semibold">Other User's Video</h2>
-      <video
-        playsInline
-        autoPlay
-        muted
-        class="w-full rounded-lg border shadow"
-        bind:this={otherVideo}
-      ></video>
+    <div class="relative mt-4 flex w-full justify-center space-x-4">
+      <button
+        title="Toggle Microphone"
+        onclick={toggleMic}
+        class={`my-auto flex rounded-full p-3 ${isMicOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
+      >
+        <span class="material-symbols-outlined"> mic </span>
+      </button>
+      <button
+        title="Toggle Camera"
+        onclick={toggleCamera}
+        class={`my-auto flex items-center justify-center rounded-full p-3 ${isVideoOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
+      >
+        <span class="material-symbols-outlined"> videocam </span>
+      </button>
+      <button
+        onclick={handleClosedCaption}
+        class={`my-auto flex items-center justify-center rounded-full p-3 ${isClosedCaptionOn ? 'bg-gray-200 dark:text-black' : 'bg-green-500'}`}
+      >
+        <span class="material-symbols-outlined"> closed_caption </span>
+      </button>
+      <!-- TODO: add CSS if activated -->
+      <button
+        onclick={() => (isMoodOn = !isMoodOn)}
+        class={`my-auto flex items-center justify-center rounded-full p-3 ${isMoodOn ? 'bg-gray-200 dark:text-black' : ''}`}
+      >
+        <span class="material-symbols-outlined"> mood </span>
+      </button>
+      <!-- TODO: add CSS if activated -->
+      <button
+        onclick={() => (isBackHandOn = !isBackHandOn)}
+        class={`my-auto flex items-center justify-center rounded-full p-3 ${isBackHandOn ? 'bg-gray-200 dark:text-black' : ''}`}
+      >
+        <span class="material-symbols-outlined"> back_hand </span>
+      </button>
+      <button
+        onclick={() => console.log('more option')}
+        class={`my-auto flex items-center justify-center rounded-full bg-gray-200 px-2 py-3`}
+      >
+        <span class="material-symbols-outlined"> more_vert </span>
+      </button>
+      <button
+        onclick={handleHangUp}
+        class={`my-auto flex items-center justify-center rounded-full bg-red-500 p-3`}
+      >
+        <span class="material-symbols-outlined"> call_end </span>
+      </button>
     </div>
   </div>
 </main>
-
-<style>
-  main {
-    max-width: 800px;
-  }
-</style>
