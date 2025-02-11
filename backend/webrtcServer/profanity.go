@@ -12,7 +12,6 @@ type UserSession struct {
 	RoomID         string
 	UserID         string
 	sentenceBuffer string
-	previousScore  float64
 }
 
 // startNewSession starts a new session with the given roomID and userID
@@ -20,7 +19,6 @@ func (s *UserSession) startNewSession(roomID string, userID string) {
 	s.sentenceBuffer = ""
 	s.RoomID = roomID
 	s.UserID = userID
-	s.previousScore = 0
 }
 
 // appendToBuffer appends the sentence to the sentence buffer
