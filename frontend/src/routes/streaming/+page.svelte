@@ -8,7 +8,6 @@
     StreamingAnswerMessage,
     StreamingIceCandidateMessage
   } from '@/lib/constants/types';
-  import ButtonOption from '@/lib/components/ButtonOption.svelte';
 
   let roomID: string = 'example-room'; // Will be replaced with dynamic room ID
   let userVideo: HTMLVideoElement;
@@ -19,6 +18,7 @@
   let localStream: MediaStream;
 
   let connectedUsers = $state(1);
+
   let isMicOn = $state(true);
   let isVideoOn = $state(true);
   let isClosedCaptionOn = $state(true);
@@ -60,9 +60,7 @@
   });
 
   onDestroy(() => {
-    ws?.close();
-    peerConnection?.close();
-    localStream?.getTracks().forEach((track) => track.stop());
+    stopMediaTracks();
   });
 
   async function openCamera() {
@@ -154,6 +152,32 @@
       console.error('Error adding received ICE candidate:', error);
     }
   }
+
+  const toggleCamera = () => {
+    const tracks = localStream.getVideoTracks();
+    tracks[0].enabled = !tracks[0].enabled;
+    isVideoOn = tracks[0].enabled;
+  };
+  const toggleMic = () => {
+    const tracks = localStream.getAudioTracks();
+    tracks[0].enabled = !tracks[0].enabled;
+    isMicOn = tracks[0].enabled;
+  };
+  const stopMediaTracks = () => {
+    ws?.close();
+    peerConnection?.close();
+    localStream?.getTracks().forEach((track) => track.stop());
+  };
+  const handleHangUp = () => {
+    // TODO: Emit message to propagate user disconnecting. Find a way to remove the remote video and update the UI.
+    // TODO: Use a modal to confirm hanging up to prevent clicking by mistake
+    stopMediaTracks();
+  };
+
+  const handleClosedCaption = () => {
+    // TODO: Activate or deactivate Closed Caption with profanity detection
+    isClosedCaptionOn = !isClosedCaptionOn;
+  };
 </script>
 
 <main class="flex min-h-screen flex-col items-center justify-center bg-[rgb(25,25,25)] p-24">
@@ -196,37 +220,51 @@
     </div>
     <div class="relative mt-4 flex w-full justify-center space-x-4">
       <button
-        onclick={() => (isMicOn = !isMicOn)}
+        title="Toggle Microphone"
+        onclick={toggleMic}
         class={`my-auto flex rounded-full p-3 ${isMicOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
       >
         <span class="material-symbols-outlined"> mic </span>
       </button>
       <button
-        onclick={() => (isVideoOn = !isVideoOn)}
+        title="Toggle Camera"
+        onclick={toggleCamera}
         class={`my-auto flex items-center justify-center rounded-full p-3 ${isVideoOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
       >
         <span class="material-symbols-outlined"> videocam </span>
       </button>
       <button
-        onclick={() => (isClosedCaptionOn = !isClosedCaptionOn)}
-        class={`my-auto flex items-center justify-center rounded-full p-3 ${isClosedCaptionOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
+        onclick={handleClosedCaption}
+        class={`my-auto flex items-center justify-center rounded-full p-3 ${isClosedCaptionOn ? 'bg-gray-200 dark:text-black' : 'bg-green-500'}`}
       >
         <span class="material-symbols-outlined"> closed_caption </span>
       </button>
+      <!-- TODO: add CSS if activated -->
       <button
         onclick={() => (isMoodOn = !isMoodOn)}
-        class={`my-auto flex items-center justify-center rounded-full p-3 ${isMoodOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
+        class={`my-auto flex items-center justify-center rounded-full p-3 ${isMoodOn ? 'bg-gray-200 dark:text-black' : ''}`}
       >
         <span class="material-symbols-outlined"> mood </span>
       </button>
+      <!-- TODO: add CSS if activated -->
       <button
         onclick={() => (isBackHandOn = !isBackHandOn)}
-        class={`my-auto flex items-center justify-center rounded-full p-3 ${isBackHandOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
+        class={`my-auto flex items-center justify-center rounded-full p-3 ${isBackHandOn ? 'bg-gray-200 dark:text-black' : ''}`}
       >
         <span class="material-symbols-outlined"> back_hand </span>
       </button>
-      <ButtonOption class="px-2 py-3">more_vert</ButtonOption>
-      <ButtonOption class="bg-red-500 p-3 text-white">call_end</ButtonOption>
+      <button
+        onclick={() => console.log('more option')}
+        class={`my-auto flex items-center justify-center rounded-full bg-gray-200 px-2 py-3`}
+      >
+        <span class="material-symbols-outlined"> more_vert </span>
+      </button>
+      <button
+        onclick={handleHangUp}
+        class={`my-auto flex items-center justify-center rounded-full bg-red-500 p-3`}
+      >
+        <span class="material-symbols-outlined"> call_end </span>
+      </button>
     </div>
   </div>
 </main>
