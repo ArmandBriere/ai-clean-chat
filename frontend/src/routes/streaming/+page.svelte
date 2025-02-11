@@ -2,7 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import { PUBLIC_SERVER_WS_URL } from '$env/static/public';
   import { v4 } from 'uuid';
-  import { OFFER, ANSWER, ICE_CANDIDATE } from '@/lib/constants/constants';
+  import { OFFER, ANSWER, ICE_CANDIDATE, HANG_UP } from '@/lib/constants/constants';
   import type {
     StreamingOfferMessage,
     StreamingAnswerMessage,
@@ -48,6 +48,8 @@
       } else if (message.type == ICE_CANDIDATE) {
         let data: StreamingIceCandidateMessage = message;
         await handleIceCandidate(data.payload);
+      } else if (message.type == HANG_UP) {
+        connectedUsers = 1;
       }
     };
 
@@ -176,10 +178,17 @@
     peerConnection?.close();
     localStream?.getTracks().forEach((track) => track.stop());
   };
+
+  let showModal = $state(false);
   const handleHangUp = () => {
-    // TODO: Emit message to propagate user disconnecting. Find a way to remove the remote video and update the UI.
     // TODO: Use a modal to confirm hanging up to prevent clicking by mistake
+    ws.send(JSON.stringify({ type: HANG_UP }));
+    showModal = false;
     stopMediaTracks();
+  };
+
+  const openModal = () => {
+    showModal = !showModal;
   };
 
   const handleClosedCaption = () => {
@@ -230,49 +239,75 @@
       <button
         title="Toggle Microphone"
         onclick={toggleMic}
-        class={`my-auto flex rounded-full p-3 ${isMicOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
+        class={`my-auto flex select-none rounded-full p-3 no-underline hover:opacity-70 ${isMicOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
       >
         <span class="material-symbols-outlined"> mic </span>
       </button>
       <button
         title="Toggle Camera"
         onclick={toggleCamera}
-        class={`my-auto flex items-center justify-center rounded-full p-3 ${isVideoOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
+        class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:opacity-70 ${isVideoOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
       >
         <span class="material-symbols-outlined"> videocam </span>
       </button>
       <button
         onclick={handleClosedCaption}
-        class={`my-auto flex items-center justify-center rounded-full p-3 ${isClosedCaptionOn ? 'bg-gray-200 dark:text-black' : 'bg-green-500'}`}
+        class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:opacity-70 ${isClosedCaptionOn ? 'bg-gray-200 dark:text-black' : 'bg-green-500'}`}
       >
         <span class="material-symbols-outlined"> closed_caption </span>
       </button>
       <!-- TODO: add CSS if activated -->
       <button
         onclick={() => (isMoodOn = !isMoodOn)}
-        class={`my-auto flex items-center justify-center rounded-full p-3 ${isMoodOn ? 'bg-gray-200 dark:text-black' : ''}`}
+        class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:opacity-70 ${isMoodOn ? 'bg-gray-200 dark:text-black' : ''}`}
       >
         <span class="material-symbols-outlined"> mood </span>
       </button>
       <!-- TODO: add CSS if activated -->
       <button
         onclick={() => (isBackHandOn = !isBackHandOn)}
-        class={`my-auto flex items-center justify-center rounded-full p-3 ${isBackHandOn ? 'bg-gray-200 dark:text-black' : ''}`}
+        class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:opacity-70 ${isBackHandOn ? 'bg-gray-200 dark:text-black' : ''}`}
       >
         <span class="material-symbols-outlined"> back_hand </span>
       </button>
       <button
         onclick={() => console.log('more option')}
-        class={`my-auto flex items-center justify-center rounded-full bg-gray-200 px-2 py-3`}
+        class={`my-auto flex select-none items-center justify-center rounded-full bg-gray-200 px-2 py-3 no-underline hover:opacity-70`}
       >
         <span class="material-symbols-outlined"> more_vert </span>
       </button>
-      <button
-        onclick={handleHangUp}
-        class={`my-auto flex items-center justify-center rounded-full bg-red-500 p-3`}
-      >
-        <span class="material-symbols-outlined"> call_end </span>
-      </button>
+
+      <!-- Close meeting -->
+      <div class="relative inline-block">
+        <button
+          onclick={openModal}
+          class={`my-auto flex select-none items-center justify-center rounded-full bg-red-500 p-3 no-underline hover:opacity-70`}
+        >
+          <span class="material-symbols-outlined"> call_end </span>
+        </button>
+
+        {#if showModal}
+          <div
+            class="absolute left-1/2 top-16 z-10 w-40 -translate-x-1/2 transform rounded-lg bg-gray-200 p-4 shadow-lg"
+          >
+            <div
+              class="absolute -top-2 left-1/2 h-4 w-4 -translate-x-1/2 rotate-45 transform bg-gray-200"
+            ></div>
+            <p class="mb-2 select-none text-center text-black no-underline">Leaving already?</p>
+
+            <div class="flex justify-center space-x-2">
+              <button
+                class="w-full select-none rounded bg-green-500 px-3 py-1 text-black no-underline hover:bg-green-600"
+                onclick={handleHangUp}>Yes</button
+              >
+              <button
+                class="w-full select-none rounded bg-red-500 px-3 py-1 text-black no-underline hover:bg-red-600"
+                onclick={() => (showModal = false)}>No</button
+              >
+            </div>
+          </div>
+        {/if}
+      </div>
     </div>
   </div>
 </main>
