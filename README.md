@@ -121,3 +121,23 @@ bun run prettier . --check
 ## AI
 
 The AI folder contains the AI models used by the backend.
+
+### Setup
+
+Start the profanity server with the following command:
+
+```bash
+docker compose up -d
+```
+
+You can validate that the service is working properly by running the following command:
+
+```bash
+curl --request POST --data '{"text":"duck you"}' -H 'Content-Type: application/json' https://ai-clean-chat.home.site/api/profanity/insult
+```
+
+The expected output is:
+
+```json
+{"profanity_score":0.9799837470054626}
+```

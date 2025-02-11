@@ -3,7 +3,7 @@ from datetime import datetime
 import torch
 from transformers import BertModel, BertTokenizer
 
-from .const import BASE_MODEL, DATA_FOLDER
+from const import BASE_MODEL, DATA_FOLDER
 
 
 class BERTClassifier(torch.nn.Module):

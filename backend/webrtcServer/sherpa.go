@@ -1,3 +1,5 @@
+//go:build !profanity
+
 package webrtcserver
 
 import (
@@ -52,6 +54,9 @@ func transcribe(ctx context.Context, track *webrtc.TrackRemote, isStreaming *boo
 		slog.Error("Failed to create Opus decoder", "error", err)
 	}
 
+	userSession := UserSession{}
+	userSession.startNewSession("roomID", "userID")
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -94,10 +99,11 @@ func transcribe(ctx context.Context, track *webrtc.TrackRemote, isStreaming *boo
 			text := recognizer.GetResult(stream).Text
 			if len(text) != 0 && last_text != text {
 				last_text = strings.ToLower(text)
-				// fmt.Printf("\r%d: %s", segment_idx, last_text)
 				slog.Info("Transcription", "text", last_text)
 				wsConn.WriteJSON(WebSocketTranscription{Type: "transcription", Text: last_text})
-				recognizer.Reset(stream) // Hard reset to only get last audio segment
+				recognizer.Reset(stream)
+				userSession.appendToBuffer(text)
+				userSession.analyzeBuffer()
 			}
 
 			if recognizer.IsEndpoint(stream) {
