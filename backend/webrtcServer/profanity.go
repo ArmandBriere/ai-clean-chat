@@ -12,6 +12,7 @@ type UserSession struct {
 	RoomID         string
 	UserID         string
 	sentenceBuffer string
+	previousScore  float64
 }
 
 // startNewSession starts a new session with the given roomID and userID
@@ -19,13 +20,14 @@ func (s *UserSession) startNewSession(roomID string, userID string) {
 	s.sentenceBuffer = ""
 	s.RoomID = roomID
 	s.UserID = userID
+	s.previousScore = 0
 }
 
 // appendToBuffer appends the sentence to the sentence buffer
 func (s *UserSession) appendToBuffer(sentence string) {
 	s.sentenceBuffer += sentence
 
-	s.sentenceBuffer = keepXWords(s.sentenceBuffer, 15)
+	s.sentenceBuffer = keepXWords(s.sentenceBuffer, 8)
 }
 
 // keepXWords returns the last x words of the sentence
@@ -71,7 +73,6 @@ func (s *UserSession) analyzeBuffer() (float64, error) {
 		slog.Error("Error sending post request", "err", err)
 		return 0, err
 	}
-
 	defer resp.Body.Close()
 
 	var responseData PostResponse

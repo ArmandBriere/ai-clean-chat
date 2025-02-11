@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/hraban/opus"
 	sherpa "github.com/k2-fsa/sherpa-onnx-go/sherpa_onnx"
@@ -100,10 +101,22 @@ func transcribe(ctx context.Context, track *webrtc.TrackRemote, isStreaming *boo
 			if len(text) != 0 && last_text != text {
 				last_text = strings.ToLower(text)
 				slog.Info("Transcription", "text", last_text)
-				wsConn.WriteJSON(WebSocketTranscription{Type: "transcription", Text: last_text})
-				recognizer.Reset(stream)
 				userSession.appendToBuffer(text)
-				userSession.analyzeBuffer()
+				profanityScore, err := userSession.analyzeBuffer()
+				if err != nil {
+					slog.Error("Error analyzing buffer", "error", err)
+				}
+
+				slog.Info("Profanity score", "score", profanityScore)
+				uuid := uuid.New().String()
+				wsConn.WriteJSON(WebSocketTranscription{
+					Type:           "transcription",
+					Text:           last_text,
+					Uuid:           uuid,
+					ProfanityScore: profanityScore,
+				})
+
+				recognizer.Reset(stream)
 			}
 
 			if recognizer.IsEndpoint(stream) {

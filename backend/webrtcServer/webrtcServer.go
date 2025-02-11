@@ -109,6 +109,12 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			parseIceCandidateMessage(msg, peerConnection)
 		case "streaming":
 			parseStreamingMessage(&isStreaming, msg)
+			message, err := json.Marshal(WebSocketMessage{Type: "streaming", IsStreaming: isStreaming})
+			if err != nil {
+				slog.Error("JSON marshal error", "Error", err)
+				continue
+			}
+			wsConn.WriteMessage(websocket.TextMessage, message)
 		}
 	}
 }
