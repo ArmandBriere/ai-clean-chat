@@ -12,3 +12,9 @@ export type StreamingIceCandidateMessage = {
   type: string;
   payload: RTCIceCandidate;
 };
+
+export type AnalyzedMessage = {
+  uuid: string;
+  text: string;
+  profanityScore: number;
+};

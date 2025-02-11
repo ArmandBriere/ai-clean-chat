@@ -2,17 +2,17 @@
   import { onMount, onDestroy } from 'svelte';
   import { PUBLIC_SERVER_WS_URL } from '$env/static/public';
   import { ANSWER, ICE_CANDIDATE, STREAMING, TRANSCRIPTION } from '@/lib/constants/constants';
+  import type { AnalyzedMessage } from '@/lib/constants/types';
 
   import { page } from '$app/state';
   let roomID = page.params.roomID;
-  console.log('roomID:', roomID);
 
   // Transcription
   let wsTranscription: WebSocket | null = null;
   let pcTranscription: RTCPeerConnection | null = null;
   let streamTranscription: MediaStream | null = null;
 
-  let messages: string[] = $state([]);
+  let messages: AnalyzedMessage[] = $state([]);
   let isStreaming = false;
 
   onMount(async () => {
@@ -51,7 +51,6 @@
           });
           if (streamTranscription) {
             streamTranscription.getTracks().forEach((track) => {
-              console.log(track.getSettings());
               pcTranscription?.addTrack(track);
             });
           }
@@ -78,7 +77,7 @@
         } catch (getUserMediaError) {
           console.error('Error getting user media:', getUserMediaError);
           cleanup();
-          return; // Important: Exit the onopen handler if getUserMedia fails
+          return;
         }
 
         if (!wsTranscription) {
@@ -116,7 +115,13 @@
               console.log('Stopping streaming');
             }
           } else if (message.type === TRANSCRIPTION) {
-            const updatedMessages = [...messages, message.text];
+            var newMessage: AnalyzedMessage = {
+              uuid: message.uuid,
+              text: message.text,
+              profanityScore: message.profanity_score
+            };
+
+            const updatedMessages = [...messages, newMessage];
             messages = updatedMessages.slice(-25);
           }
         };
@@ -161,39 +166,22 @@
   }
 
   function cleanup() {
-    // Close the transcription ws connection
-    if (wsTranscription) {
-      wsTranscription.close();
-      wsTranscription = null;
-    }
-    // Close the transcription peer connection
-    if (pcTranscription) {
-      pcTranscription.close();
-      pcTranscription = null;
-    }
-    if (streamTranscription) {
-      streamTranscription.getTracks().forEach((track) => track.stop());
-      streamTranscription = null;
-    }
+    wsTranscription?.close();
+    pcTranscription?.close();
+    streamTranscription?.getTracks().forEach((track) => track.stop());
   }
 </script>
 
 <div class="w-full justify-center text-center">
-  <!-- {#if roomID}
-    <div class="m-4 rounded bg-[darkgray] p-4">
-      <p>
-        {roomID}
-      </p>
-    </div>
-  {/if} -->
-
   <div class="m-4 rounded bg-[darkgray] p-4">
     <button onclick={startStreaming} aria-label="Start WebRTC">Start WebRTC</button>
   </div>
   <div class="m-4 text-left text-gray-600">
     <span class="font-normal"> Transcription: </span>
     {#each messages as message}
-      {message}
+      <span class={message.profanityScore > 0.9 ? 'text-red-500 line-through' : ''}>
+        {message.text}
+      </span>
     {/each}
   </div>
 </div>
