@@ -93,6 +93,11 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 		err := wsConn.ReadJSON(&message)
 
 		if err != nil {
+			if websocket.IsCloseError(err, websocket.CloseGoingAway) {
+				slog.Info("Client is going away", "userID", userID)
+				AllRooms.DeleteFromRoom(roomID, userID)
+				return
+			}
 			slog.Error("Error reading JSON", "err", err)
 			return
 		}
