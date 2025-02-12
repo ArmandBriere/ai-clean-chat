@@ -15,9 +15,21 @@
   let messages: string[] = $state([]);
   let isStreaming = false;
 
+  let microphoneList: MediaDeviceInfo[] = $state([]);
+  let selectedMicrophone: string = $state('default');
+
   onMount(async () => {
+    navigator.mediaDevices.enumerateDevices().then((devices) => {
+      microphoneList = devices.filter((device) => device.kind === 'audioinput');
+    });
+
     startTranscriptionConnection();
   });
+
+  function setSelectedMicrophone() {
+    console.log(selectedMicrophone);
+    restartConnection();
+  }
 
   onDestroy(() => {
     cleanup();
@@ -46,7 +58,8 @@
           streamTranscription = await navigator.mediaDevices.getUserMedia({
             audio: {
               channelCount: 1,
-              sampleRate: 48000
+              sampleRate: 48000,
+              deviceId: selectedMicrophone
             }
           });
           if (streamTranscription) {
@@ -123,18 +136,15 @@
 
         wsTranscription.onclose = () => {
           console.log('WebSocket closed');
-          cleanup();
         };
 
         wsTranscription.onerror = (error) => {
           console.error('WebSocket error:', error);
-          cleanup();
         };
       };
 
       wsTranscription.onerror = (error) => {
         console.error('WebSocket connection error:', error);
-        cleanup();
       };
     } catch (error) {
       console.error('Error starting connection:', error);
@@ -161,32 +171,13 @@
   }
 
   function cleanup() {
-    // Close the transcription ws connection
-    if (wsTranscription) {
-      wsTranscription.close();
-      wsTranscription = null;
-    }
-    // Close the transcription peer connection
-    if (pcTranscription) {
-      pcTranscription.close();
-      pcTranscription = null;
-    }
-    if (streamTranscription) {
-      streamTranscription.getTracks().forEach((track) => track.stop());
-      streamTranscription = null;
-    }
+    wsTranscription?.close();
+    pcTranscription?.close();
+    streamTranscription?.getTracks().forEach((track) => track.stop());
   }
 </script>
 
 <div class="w-full justify-center text-center">
-  <!-- {#if roomID}
-    <div class="m-4 rounded bg-[darkgray] p-4">
-      <p>
-        {roomID}
-      </p>
-    </div>
-  {/if} -->
-
   <div class="m-4 rounded bg-[darkgray] p-4">
     <button onclick={startStreaming} aria-label="Start WebRTC">Start WebRTC</button>
   </div>
@@ -195,5 +186,15 @@
     {#each messages as message}
       {message}
     {/each}
+  </div>
+  <div>
+    <select bind:value={selectedMicrophone} onchange={setSelectedMicrophone}>
+      {#each microphoneList as microphone}
+        <option value={microphone.deviceId}>{microphone.label}</option>
+      {/each}
+    </select>
+  </div>
+  <div>
+    {selectedMicrophone}
   </div>
 </div>
