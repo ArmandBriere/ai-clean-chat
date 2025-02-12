@@ -9,6 +9,9 @@
     StreamingIceCandidateMessage
   } from '@/lib/constants/types';
 
+  import HangUp from '@/lib/components/HangUp.svelte';
+  import Emojis from '@/lib/components/Emojis.svelte';
+
   let roomID: string = 'example-room'; // Will be replaced with dynamic room ID
   let userVideo: HTMLVideoElement;
   let otherVideo: HTMLVideoElement;
@@ -24,6 +27,10 @@
   let isClosedCaptionOn = $state(true);
   let isMoodOn = $state(true);
   let isBackHandOn = $state(true);
+
+  let showHangUpModal = $state(false);
+  let showEmojiModal = $state(false);
+  let receivedEmoji = $state('');
 
   onMount(() => {
     console.log(otherVideo?.srcObject);
@@ -50,6 +57,8 @@
         await handleIceCandidate(data.payload);
       } else if (message.type == HANG_UP) {
         connectedUsers = 1;
+      } else if (message.type == 'emoji') {
+        receivedEmoji = message.payload;
       }
     };
 
@@ -179,16 +188,14 @@
     localStream?.getTracks().forEach((track) => track.stop());
   };
 
-  let showModal = $state(false);
   const handleHangUp = () => {
-    // TODO: Use a modal to confirm hanging up to prevent clicking by mistake
     ws.send(JSON.stringify({ type: HANG_UP }));
-    showModal = false;
+    showHangUpModal = false;
     stopMediaTracks();
   };
 
-  const openModal = () => {
-    showModal = !showModal;
+  const shareEmoji = (emoji: string) => {
+    ws.send(JSON.stringify({ type: 'emoji', payload: emoji }));
   };
 
   const handleClosedCaption = () => {
@@ -256,14 +263,9 @@
       >
         <span class="material-symbols-outlined"> closed_caption </span>
       </button>
-      <!-- TODO: add CSS if activated -->
-      <button
-        onclick={() => (isMoodOn = !isMoodOn)}
-        class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:opacity-70 ${isMoodOn ? 'bg-gray-200 dark:text-black' : ''}`}
-      >
-        <span class="material-symbols-outlined"> mood </span>
-      </button>
-      <!-- TODO: add CSS if activated -->
+
+      <Emojis {showEmojiModal} {isMoodOn} {shareEmoji} {receivedEmoji} />
+
       <button
         onclick={() => (isBackHandOn = !isBackHandOn)}
         class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:opacity-70 ${isBackHandOn ? 'bg-gray-200 dark:text-black' : ''}`}
@@ -278,36 +280,7 @@
       </button>
 
       <!-- Close meeting -->
-      <div class="relative inline-block">
-        <button
-          onclick={openModal}
-          class={`my-auto flex select-none items-center justify-center rounded-full bg-red-500 p-3 no-underline hover:opacity-70`}
-        >
-          <span class="material-symbols-outlined"> call_end </span>
-        </button>
-
-        {#if showModal}
-          <div
-            class="absolute left-1/2 top-16 z-10 w-40 -translate-x-1/2 transform rounded-lg bg-gray-200 p-4 shadow-lg"
-          >
-            <div
-              class="absolute -top-2 left-1/2 h-4 w-4 -translate-x-1/2 rotate-45 transform bg-gray-200"
-            ></div>
-            <p class="mb-2 select-none text-center text-black no-underline">Leaving already?</p>
-
-            <div class="flex justify-center space-x-2">
-              <button
-                class="w-full select-none rounded bg-green-500 px-3 py-1 text-black no-underline hover:bg-green-600"
-                onclick={handleHangUp}>Yes</button
-              >
-              <button
-                class="w-full select-none rounded bg-red-500 px-3 py-1 text-black no-underline hover:bg-red-600"
-                onclick={() => (showModal = false)}>No</button
-              >
-            </div>
-          </div>
-        {/if}
-      </div>
+      <HangUp {handleHangUp} {showHangUpModal} />
     </div>
   </div>
 </main>
