@@ -25,7 +25,7 @@ func (s *UserSession) startNewSession(roomID string, userID string) {
 func (s *UserSession) appendToBuffer(sentence string) {
 	s.sentenceBuffer += sentence
 
-	s.sentenceBuffer = keepXWords(s.sentenceBuffer, 15)
+	s.sentenceBuffer = keepXWords(s.sentenceBuffer, 8)
 }
 
 // keepXWords returns the last x words of the sentence
@@ -71,7 +71,6 @@ func (s *UserSession) analyzeBuffer() (float64, error) {
 		slog.Error("Error sending post request", "err", err)
 		return 0, err
 	}
-
 	defer resp.Body.Close()
 
 	var responseData PostResponse

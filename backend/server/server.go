@@ -69,21 +69,12 @@ func (r *RoomMap) DeleteFromRoom(roomID string, userID string) {
 		if p.UserID == userID {
 			slog.Info("Deleting from Room", "roomID", roomID, "userID", userID)
 			r.Map[roomID] = append(r.Map[roomID][:i], r.Map[roomID][i+1:]...)
-			return
 		}
 	}
 
 	// Delete the room if there are no participants left
 	if len(r.Map[roomID]) == 0 {
-		r.DeleteRoom(roomID)
+		slog.Info("Room is empty", "roomID", roomID)
+		delete(r.Map, roomID)
 	}
-}
-
-// DeleteRoom deletes a room from the map
-func (r *RoomMap) DeleteRoom(roomID string) {
-	r.Mutex.Lock()
-	defer r.Mutex.Unlock()
-
-	slog.Info("Deleting Room", "roomID", roomID)
-	delete(r.Map, roomID)
 }

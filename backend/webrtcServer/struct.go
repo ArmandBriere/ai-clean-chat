@@ -13,8 +13,10 @@ type WebSocketMessage struct {
 }
 
 type WebSocketTranscription struct {
-	Type string `json:"type"`
-	Text string `json:"text"`
+	Type           string  `json:"type"`
+	Text           string  `json:"text"`
+	Uuid           string  `json:"uuid"`
+	ProfanityScore float64 `json:"profanity_score"`
 }
 
 // Profanity structs
