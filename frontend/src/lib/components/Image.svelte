@@ -12,7 +12,7 @@
     height = undefined
   }: {
     class: string;
-    wrapperClasses: string;
+    wrapperClasses?: string;
     src: string;
     alt: string;
     srcLarge?: string | undefined;
