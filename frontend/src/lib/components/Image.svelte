@@ -15,12 +15,12 @@
     wrapperClasses: string;
     src: string;
     alt: string;
-    srcLarge: string | undefined;
-    srcMedium: string | undefined;
-    loading: 'eager' | 'lazy' | null | undefined;
-    fetchpriority: 'auto' | 'high' | 'low' | null | undefined;
-    width: string | undefined;
-    height: string | undefined;
+    srcLarge?: string | undefined;
+    srcMedium?: string | undefined;
+    loading?: 'eager' | 'lazy' | null | undefined;
+    fetchpriority?: 'auto' | 'high' | 'low' | null | undefined;
+    width?: string | undefined;
+    height?: string | undefined;
   } = $props();
 </script>
 
