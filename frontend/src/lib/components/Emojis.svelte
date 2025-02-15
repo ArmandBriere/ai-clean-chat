@@ -4,12 +4,10 @@
 
   let {
     showEmojiModal = false,
-    isMoodOn = true,
     shareEmoji = () => {},
     receivedEmoji = ''
   }: {
     showEmojiModal: boolean;
-    isMoodOn: boolean;
     shareEmoji: (emoji: string) => void;
     receivedEmoji: string;
   } = $props();
@@ -40,11 +38,10 @@
   };
 </script>
 
-<!-- Close meeting -->
 <div class="relative inline-block">
   <button
     onclick={openModal}
-    class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:opacity-70 ${isMoodOn ? 'bg-gray-200 dark:text-black' : ''}`}
+    class={`my-auto flex select-none items-center justify-center rounded-full bg-gray-200 p-3 no-underline hover:opacity-70 dark:text-black`}
   >
     <span class="material-symbols-outlined"> mood </span>
   </button>

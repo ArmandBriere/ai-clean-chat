@@ -1,15 +1,27 @@
 <script lang="ts">
-  let className = '';
-  export { className as class };
-  export let wrapperClasses = '';
-  export let src: string;
-  export let alt: string;
-  export let srcLarge: string | undefined = undefined;
-  export let srcMedium: string | undefined = undefined;
-  export let loading: 'eager' | 'lazy' | null | undefined = 'lazy';
-  export let fetchpriority: 'auto' | 'high' | 'low' | null | undefined = 'auto';
-  export let width: string | undefined = undefined;
-  export let height: string | undefined = undefined;
+  let {
+    class: className = '',
+    wrapperClasses = '',
+    src,
+    alt,
+    srcLarge = undefined,
+    srcMedium = undefined,
+    loading = 'lazy',
+    fetchpriority = 'auto',
+    width = undefined,
+    height = undefined
+  }: {
+    class: string;
+    wrapperClasses: string;
+    src: string;
+    alt: string;
+    srcLarge: string | undefined;
+    srcMedium: string | undefined;
+    loading: 'eager' | 'lazy' | null | undefined;
+    fetchpriority: 'auto' | 'high' | 'low' | null | undefined;
+    width: string | undefined;
+    height: string | undefined;
+  } = $props();
 </script>
 
 <picture class={wrapperClasses}>
