@@ -16,6 +16,7 @@
   import MicrophoneSelector from '@/lib/components/MicrophoneSelector.svelte';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
+  import CameraSelector from '@/lib/components/CameraSelector.svelte';
 
   let roomID = page.params.roomID;
   let userVideo: HTMLVideoElement;
@@ -28,6 +29,7 @@
   let connectedUsers = $state(1);
 
   let selectedMicrophone = $state('default');
+  let selectedCamera = $state('default');
   let isMicOn = $state(true);
   let isVideoOn = $state(true);
   let isClosedCaptionOn = $state(false);
@@ -35,6 +37,7 @@
 
   let showHangUpModal = $state(false);
   let showMicrophoneModal = $state(false);
+  let showCameraModal = $state(false);
   let showEmojiModal = $state(false);
   let receivedEmoji = $state('');
 
@@ -269,11 +272,21 @@
       {/each}
     </div>
     <div class="relative mt-4 flex w-full justify-center space-x-4">
+
       <MicrophoneSelector
-        bind:isMicOn
+        isMicOn
         {showMicrophoneModal}
         bind:selectedMicrophone
         displayTop={true}
+        closeMic={() => (showMicrophoneModal = false)}
+      />
+
+      <CameraSelector
+        isCamOn={isVideoOn}
+        {showCameraModal}
+        bind:selectedCamera
+        displayTop={true}
+        closeCamera={toggleCamera}
       />
 
       <button

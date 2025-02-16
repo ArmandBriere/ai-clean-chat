@@ -4,13 +4,15 @@
   let {
     showMicrophoneModal = false,
     selectedMicrophone = $bindable('default'),
-    isMicOn = $bindable(),
-    displayTop = false
+    isMicOn = true,
+    displayTop = false,
+    closeMic = $bindable()
   }: {
     showMicrophoneModal: boolean;
     selectedMicrophone: string;
     isMicOn: boolean;
     displayTop: boolean;
+    closeMic: () => void;
   } = $props();
 
   let microphoneList: MediaDeviceInfo[] = $state([]);
@@ -26,10 +28,6 @@
     showMicrophoneModal = false;
   }
 
-  function toggleMic() {
-    isMicOn = !isMicOn;
-  }
-
   const openModal = () => {
     showMicrophoneModal = !showMicrophoneModal;
   };
@@ -41,10 +39,12 @@
       onclick={openModal}
       class="my-auto flex select-none items-center justify-center rounded-full p-1 no-underline hover:brightness-75 dark:text-black"
     >
-      <span class="material-symbols-outlined"> arrow_drop_down </span>
+      <span class="material-symbols-outlined">
+        {showMicrophoneModal ? 'arrow_drop_up' : 'arrow_drop_down'}
+      </span>
     </button>
     <button
-      onclick={toggleMic}
+      onclick={closeMic}
       class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:brightness-75 dark:text-black ${isMicOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
     >
       <span class="material-symbols-outlined"> mic </span>
