@@ -39,13 +39,13 @@
   <div class="flex rounded-full bg-white pl-1">
     <button
       onclick={openModal}
-      class="my-auto flex select-none items-center justify-center rounded-full p-1 no-underline hover:opacity-70 dark:text-black"
+      class="my-auto flex select-none items-center justify-center rounded-full p-1 no-underline hover:brightness-75 dark:text-black"
     >
       <span class="material-symbols-outlined"> arrow_drop_down </span>
     </button>
     <button
       onclick={toggleMic}
-      class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:opacity-70 dark:text-black ${isMicOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
+      class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:brightness-75 dark:text-black ${isMicOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
     >
       <span class="material-symbols-outlined"> mic </span>
     </button>
