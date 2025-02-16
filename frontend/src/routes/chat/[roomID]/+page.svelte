@@ -13,9 +13,9 @@
   import HangUp from '@/lib/components/HangUp.svelte';
   import Emojis from '@/lib/components/Emojis.svelte';
   import Transcription from '@/lib/components/Transcription.svelte';
-  import MicrophoneSelector from '@/lib/components/MicrophoneSelector.svelte';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
+  import Selector from '@/lib/components/Selector.svelte';
 
   let roomID = page.params.roomID;
   let userVideo: HTMLVideoElement;
@@ -28,6 +28,7 @@
   let connectedUsers = $state(1);
 
   let selectedMicrophone = $state('default');
+  let selectedCamera = $state('default');
   let isMicOn = $state(true);
   let isVideoOn = $state(true);
   let isClosedCaptionOn = $state(false);
@@ -35,6 +36,7 @@
 
   let showHangUpModal = $state(false);
   let showMicrophoneModal = $state(false);
+  let showCameraModal = $state(false);
   let showEmojiModal = $state(false);
   let receivedEmoji = $state('');
 
@@ -181,24 +183,19 @@
     }
   }
 
+  // Toggle camera on/off
   const toggleCamera = () => {
     const tracks = localStream.getVideoTracks();
     tracks[0].enabled = !tracks[0].enabled;
     isVideoOn = tracks[0].enabled;
   };
 
-  $effect(() => {
-    console.log('Mic status:', isMicOn);
-    if (localStream) {
-      const tracks = localStream.getAudioTracks();
-      tracks[0].enabled = !tracks[0].enabled;
-      isMicOn = tracks[0].enabled;
-    }
-  });
-
-  $effect(() => {
-    console.log('Selected microphone:', selectedMicrophone);
-  });
+  // Toggle microphone on/off
+  const toggleMic = () => {
+    const tracks = localStream.getAudioTracks();
+    tracks[0].enabled = !tracks[0].enabled;
+    isMicOn = tracks[0].enabled;
+  };
 
   const stopMediaTracks = () => {
     ws?.close();
@@ -315,20 +312,23 @@
         </span>
       </div>
       <div class="flex flex-[1_1_25%] justify-center space-x-4">
-        <MicrophoneSelector
-          bind:isMicOn
-          {showMicrophoneModal}
-          bind:selectedMicrophone
+        <Selector
+          showModal={showMicrophoneModal}
+          kind="audioinput"
+          bind:selectedDevice={selectedMicrophone}
+          isDeviceOn={isMicOn}
+          closeDevice={toggleMic}
+          displayTop={true}
+        />
+        <Selector
+          showModal={showCameraModal}
+          kind="videoinput"
+          bind:selectedDevice={selectedCamera}
+          isDeviceOn={isVideoOn}
+          closeDevice={toggleCamera}
           displayTop={true}
         />
 
-        <button
-          title="Toggle Camera"
-          onclick={toggleCamera}
-          class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:brightness-75 ${isVideoOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
-        >
-          <span class="material-symbols-outlined"> videocam </span>
-        </button>
         <button
           onclick={handleClosedCaption}
           class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:brightness-75 ${isClosedCaptionOn ? 'bg-green-500' : ' bg-gray-200 dark:text-black'}`}
