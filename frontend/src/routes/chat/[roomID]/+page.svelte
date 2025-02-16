@@ -17,6 +17,7 @@
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import CameraSelector from '@/lib/components/CameraSelector.svelte';
+  import Selector from '@/lib/components/Selector.svelte';
 
   let roomID = page.params.roomID;
   let userVideo: HTMLVideoElement;
@@ -193,7 +194,6 @@
 
   // Toggle microphone on/off
   const toggleMic = () => {
-    console.log('Toggling microphone');
     const tracks = localStream.getAudioTracks();
     tracks[0].enabled = !tracks[0].enabled;
     isMicOn = tracks[0].enabled;
@@ -268,22 +268,24 @@
       {/each}
     </div>
     <div class="relative mt-4 flex w-full justify-center space-x-4">
-      <MicrophoneSelector
-        {isMicOn}
-        {showMicrophoneModal}
-        bind:selectedMicrophone
+      <Selector
+        showModal={showCameraModal} 
+        kind="videoinput" 
+        bind:selectedDevice={selectedCamera} 
+        isDeviceOn={isVideoOn}
+        closeDevice={toggleCamera}
         displayTop={true}
-        closeMic={toggleMic}
       />
 
-      <CameraSelector
-        isCamOn={isVideoOn}
-        {showCameraModal}
-        bind:selectedCamera
+      <Selector
+        showModal={showMicrophoneModal} 
+        kind="audioinput" 
+        bind:selectedDevice={selectedMicrophone} 
+        isDeviceOn={isMicOn}
+        closeDevice={toggleMic}
         displayTop={true}
-        closeCamera={toggleCamera}
       />
-
+        
       <button
         onclick={handleClosedCaption}
         class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:brightness-75 ${isClosedCaptionOn ? 'bg-green-500' : ' bg-gray-200 dark:text-black'}`}
