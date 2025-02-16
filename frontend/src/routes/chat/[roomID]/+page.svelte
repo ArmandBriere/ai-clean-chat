@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { PUBLIC_SERVER_WS_URL } from '$env/static/public';
+  import { PUBLIC_SERVER_WS_URL, PUBLIC_SERVER_URL } from '$env/static/public';
   import { v4 } from 'uuid';
   import { OFFER, ANSWER, ICE_CANDIDATE, HANG_UP } from '@/lib/constants/constants';
   import type {
@@ -220,10 +220,22 @@
   const handleClosedCaption = () => {
     isClosedCaptionOn = !isClosedCaptionOn;
   };
+
+  const shareMeetingURI = () => {
+    const copyText = `${PUBLIC_SERVER_URL}/chat/${roomID}`;
+    const theClipboard = navigator.clipboard;
+    // write text returns a promise, so use `then` to react to success
+    theClipboard.writeText(copyText).then(() => console.log('copied to clipboard'));
+    // TODO: animate tooltip to show copied to clipboard with data
+  };
 </script>
 
-<main class="flex min-h-screen flex-col items-center justify-center bg-[rgb(25,25,25)] p-24">
-  <div class="relative w-full max-w-5xl">
+<main
+  class:p-16={isClosedCaptionOn}
+  class:py-8={!isClosedCaptionOn}
+  class="flex min-h-screen flex-col items-center justify-center bg-[rgb(25,25,25)] transition-all"
+>
+  <div class="relative w-full max-w-screen-2xl">
     <div class="relative aspect-video w-full overflow-hidden rounded-lg bg-gray-900">
       <div
         class={`h-full w-full ${connectedUsers === 2 ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}
@@ -268,49 +280,81 @@
         </span>
       {/each}
     </div>
-    <div class="relative mt-4 flex w-full justify-center space-x-4">
-      <MicrophoneSelector
-        bind:isMicOn
-        {showMicrophoneModal}
-        bind:selectedMicrophone
-        displayTop={true}
-      />
-
-      <button
-        title="Toggle Camera"
-        onclick={toggleCamera}
-        class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:brightness-75 ${isVideoOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
+    <!-- TODO: add profanity detection -->
+    <!-- {#if isClosedCaptionOn} -->
+    <!--   <div -->
+    <!--     class="relative mt-2 flex w-full max-w-5xl flex-grow flex-col overflow-scroll border border-white p-2 text-white" -->
+    <!--   > -->
+    <!--     <div class="flex w-full justify-end"> -->
+    <!--       <label for="hide-profanity" class="flex cursor-pointer items-center"> -->
+    <!--         <div class="mr-3 text-gray-200"> Hide profanities </div> -->
+    <!--         <div class="relative"> -->
+    <!--           <input type="checkbox" id="hide-profanity" class="sr-only" /> -->
+    <!--           <div class="block h-8 w-14 rounded-full bg-gray-200"></div> -->
+    <!--           <div class="dot absolute left-1 top-1 h-6 w-6 rounded-full bg-gray-600 transition"> -->
+    <!--             <span class="material-symbols-outlined font-light"> close </span> -->
+    <!--           </div> -->
+    <!--         </div> -->
+    <!--       </label> -->
+    <!--     </div> -->
+    <!--     <p>> profanity section</p> -->
+    <!--     <p>> profanity section</p> -->
+    <!--     <p>> profanity section</p> -->
+    <!--     <p>> profanity section</p> -->
+    <!--     <p>> profanity section</p> -->
+    <!--     <p>> profanity section</p> -->
+    <!--     <p>> profanity section</p> -->
+    <!--   </div> -->
+    <!-- {/if} -->
+    <div class="relative mt-4 flex w-full justify-center">
+      <div
+        class="ml-3 flex max-w-full flex-[1_1_25%] items-center overflow-hidden overflow-ellipsis text-start"
       >
-        <span class="material-symbols-outlined"> videocam </span>
-      </button>
-      <button
-        onclick={handleClosedCaption}
-        class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:brightness-75 ${isClosedCaptionOn ? 'bg-green-500' : ' bg-gray-200 dark:text-black'}`}
-      >
-        <span class="material-symbols-outlined"> closed_caption </span>
-      </button>
+        <span class="text-white">
+          <button title="Copy room id" onclick={shareMeetingURI}> {roomID}</button>
+        </span>
+      </div>
+      <div class="flex flex-[1_1_25%] justify-center space-x-4">
+        <MicrophoneSelector
+          bind:isMicOn
+          {showMicrophoneModal}
+          bind:selectedMicrophone
+          displayTop={true}
+        />
 
-      <Emojis {showEmojiModal} {shareEmoji} {receivedEmoji} />
+        <button
+          title="Toggle Camera"
+          onclick={toggleCamera}
+          class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:brightness-75 ${isVideoOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
+        >
+          <span class="material-symbols-outlined"> videocam </span>
+        </button>
+        <button
+          onclick={handleClosedCaption}
+          class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:brightness-75 ${isClosedCaptionOn ? 'bg-green-500' : ' bg-gray-200 dark:text-black'}`}
+        >
+          <span class="material-symbols-outlined"> closed_caption </span>
+        </button>
 
-      <!-- <button
-        onclick={() => (isBackHandOn = !isBackHandOn)}
-        class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:brightness-75 ${isBackHandOn ? 'bg-gray-200 dark:text-black' : ''}`}
-      >
-        <span class="material-symbols-outlined"> back_hand </span>
-      </button>
-      <button
-        onclick={() => console.log('more option')}
-        class={`my-auto flex select-none items-center justify-center rounded-full bg-gray-200 px-2 py-3 no-underline hover:brightness-75`}
-      >
-        <span class="material-symbols-outlined"> more_vert </span>
-      </button> -->
+        <Emojis {showEmojiModal} {shareEmoji} {receivedEmoji} />
 
-      <!-- Close meeting -->
-      <HangUp {handleHangUp} {showHangUpModal} displayTop={true} />
+        <!-- Close meeting -->
+        <HangUp {handleHangUp} {showHangUpModal} displayTop={true} />
 
-      {#if isClosedCaptionOn}
-        <Transcription {roomID} {selectedMicrophone} bind:messages></Transcription>
-      {/if}
+        {#if isClosedCaptionOn}
+          <Transcription {roomID} {selectedMicrophone} bind:messages></Transcription>
+        {/if}
+      </div>
+      <div class="flex flex-[1_1_25%] items-center justify-end">
+        <nav class="flex">
+          <div>
+            <button
+              class="flex items-center justify-center rounded-full p-3 text-white transition-colors hover:bg-gray-200/10"
+              ><span class="material-symbols-outlined">info</span></button
+            ></div
+          >
+        </nav>
+      </div>
     </div>
   </div>
 </main>
