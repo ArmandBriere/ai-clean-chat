@@ -51,7 +51,6 @@
     </button>
   </div>
   {#if showCameraModal}
-
     <div
       class={`absolute left-1/2 ${displayTop ? 'bottom-16' : 'top-16'} z-10 w-max -translate-x-1/2 transform rounded-lg bg-gray-200 p-2 shadow-lg`}
     >
