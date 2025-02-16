@@ -41,7 +41,7 @@
 <div class="relative inline-block">
   <button
     onclick={openModal}
-    class={`my-auto flex select-none items-center justify-center rounded-full bg-gray-200 p-3 no-underline hover:opacity-70 dark:text-black`}
+    class={`my-auto flex select-none items-center justify-center rounded-full bg-gray-200 p-3 no-underline hover:brightness-75 dark:text-black`}
   >
     <span class="material-symbols-outlined"> mood </span>
   </button>

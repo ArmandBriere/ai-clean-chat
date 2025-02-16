@@ -14,8 +14,10 @@
   import Emojis from '@/lib/components/Emojis.svelte';
   import Transcription from '@/lib/components/Transcription.svelte';
   import MicrophoneSelector from '@/lib/components/MicrophoneSelector.svelte';
+  import { page } from '$app/state';
+  import { goto } from '$app/navigation';
 
-  let roomID: string = $state(v4()); // Will be replaced with dynamic room ID
+  let roomID = page.params.roomID;
   let userVideo: HTMLVideoElement;
   let otherVideo: HTMLVideoElement;
 
@@ -208,6 +210,7 @@
     ws.send(JSON.stringify({ type: HANG_UP }));
     showHangUpModal = false;
     stopMediaTracks();
+    goto('/');
   };
 
   const shareEmoji = (emoji: string) => {
@@ -276,13 +279,13 @@
       <button
         title="Toggle Camera"
         onclick={toggleCamera}
-        class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:opacity-70 ${isVideoOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
+        class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:brightness-75 ${isVideoOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
       >
         <span class="material-symbols-outlined"> videocam </span>
       </button>
       <button
         onclick={handleClosedCaption}
-        class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:opacity-70 ${isClosedCaptionOn ? 'bg-green-500' : ' bg-gray-200 dark:text-black'}`}
+        class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:brightness-75 ${isClosedCaptionOn ? 'bg-green-500' : ' bg-gray-200 dark:text-black'}`}
       >
         <span class="material-symbols-outlined"> closed_caption </span>
       </button>
@@ -291,13 +294,13 @@
 
       <!-- <button
         onclick={() => (isBackHandOn = !isBackHandOn)}
-        class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:opacity-70 ${isBackHandOn ? 'bg-gray-200 dark:text-black' : ''}`}
+        class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:brightness-75 ${isBackHandOn ? 'bg-gray-200 dark:text-black' : ''}`}
       >
         <span class="material-symbols-outlined"> back_hand </span>
       </button>
       <button
         onclick={() => console.log('more option')}
-        class={`my-auto flex select-none items-center justify-center rounded-full bg-gray-200 px-2 py-3 no-underline hover:opacity-70`}
+        class={`my-auto flex select-none items-center justify-center rounded-full bg-gray-200 px-2 py-3 no-underline hover:brightness-75`}
       >
         <span class="material-symbols-outlined"> more_vert </span>
       </button> -->
