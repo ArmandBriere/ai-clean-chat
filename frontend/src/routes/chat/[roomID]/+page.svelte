@@ -13,10 +13,8 @@
   import HangUp from '@/lib/components/HangUp.svelte';
   import Emojis from '@/lib/components/Emojis.svelte';
   import Transcription from '@/lib/components/Transcription.svelte';
-  import MicrophoneSelector from '@/lib/components/MicrophoneSelector.svelte';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
-  import CameraSelector from '@/lib/components/CameraSelector.svelte';
   import Selector from '@/lib/components/Selector.svelte';
 
   let roomID = page.params.roomID;
@@ -269,23 +267,23 @@
     </div>
     <div class="relative mt-4 flex w-full justify-center space-x-4">
       <Selector
-        showModal={showCameraModal} 
-        kind="videoinput" 
-        bind:selectedDevice={selectedCamera} 
+        showModal={showCameraModal}
+        kind="videoinput"
+        bind:selectedDevice={selectedCamera}
         isDeviceOn={isVideoOn}
         closeDevice={toggleCamera}
         displayTop={true}
       />
 
       <Selector
-        showModal={showMicrophoneModal} 
-        kind="audioinput" 
-        bind:selectedDevice={selectedMicrophone} 
+        showModal={showMicrophoneModal}
+        kind="audioinput"
+        bind:selectedDevice={selectedMicrophone}
         isDeviceOn={isMicOn}
         closeDevice={toggleMic}
         displayTop={true}
       />
-        
+
       <button
         onclick={handleClosedCaption}
         class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:brightness-75 ${isClosedCaptionOn ? 'bg-green-500' : ' bg-gray-200 dark:text-black'}`}

@@ -7,7 +7,7 @@
     isDeviceOn = true,
     displayTop = false,
     closeDevice = $bindable(),
-    kind // 'audioinput' or 'videoinput'
+    kind = 'audioinput'
   }: {
     showModal: boolean;
     selectedDevice: string;
