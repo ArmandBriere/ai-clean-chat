@@ -14,8 +14,10 @@
   import Emojis from '@/lib/components/Emojis.svelte';
   import Transcription from '@/lib/components/Transcription.svelte';
   import MicrophoneSelector from '@/lib/components/MicrophoneSelector.svelte';
+  import { page } from '$app/state';
+  import { goto } from '$app/navigation';
 
-  let roomID: string = $state(v4()); // Will be replaced with dynamic room ID
+  let roomID = page.params.roomID;
   let userVideo: HTMLVideoElement;
   let otherVideo: HTMLVideoElement;
 
@@ -208,6 +210,7 @@
     ws.send(JSON.stringify({ type: HANG_UP }));
     showHangUpModal = false;
     stopMediaTracks();
+    goto('/');
   };
 
   const shareEmoji = (emoji: string) => {
