@@ -99,18 +99,11 @@
       </div>
       <div class="flex w-full justify-center space-x-4">
         <button
-          onclick={goToMeeting}
-          class="flex items-center rounded bg-blue-600 px-5 py-3 font-medium text-white"
-        >
-          <span class="material-symbols-outlined mr-2"> videocam </span>
-          New meeting
-        </button>
-        <button
           onclick={goToStreaming}
           class="flex items-center rounded bg-blue-600 px-5 py-3 font-medium text-white"
         >
           <span class="material-symbols-outlined mr-2"> videocam </span>
-          Streaming
+          New meeting
         </button>
         <div class="flex items-center rounded border px-5 py-3 text-gray-600">
           <span class="material-symbols-outlined mr-2"> keyboard </span>

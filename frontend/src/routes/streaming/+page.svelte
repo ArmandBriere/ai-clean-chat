@@ -6,13 +6,18 @@
   import type {
     StreamingOfferMessage,
     StreamingAnswerMessage,
-    StreamingIceCandidateMessage
+    StreamingIceCandidateMessage,
+    AnalyzedMessage
   } from '@/lib/constants/types';
 
   import HangUp from '@/lib/components/HangUp.svelte';
   import Emojis from '@/lib/components/Emojis.svelte';
+  import Transcription from '@/lib/components/Transcription.svelte';
+  import MicrophoneSelector from '@/lib/components/MicrophoneSelector.svelte';
+  import { page } from '$app/state';
+  import { goto } from '$app/navigation';
 
-  let roomID: string = 'example-room'; // Will be replaced with dynamic room ID
+  let roomID = page.params.roomID;
   let userVideo: HTMLVideoElement;
   let otherVideo: HTMLVideoElement;
 
@@ -22,15 +27,19 @@
 
   let connectedUsers = $state(1);
 
+  let selectedMicrophone = $state('default');
   let isMicOn = $state(true);
   let isVideoOn = $state(true);
-  let isClosedCaptionOn = $state(true);
-  let isMoodOn = $state(true);
+  let isClosedCaptionOn = $state(false);
   let isBackHandOn = $state(true);
 
   let showHangUpModal = $state(false);
+  let showMicrophoneModal = $state(false);
   let showEmojiModal = $state(false);
   let receivedEmoji = $state('');
+
+  // Transcription
+  let messages: AnalyzedMessage[] = $state([]);
 
   onMount(() => {
     console.log(otherVideo?.srcObject);
@@ -177,11 +186,20 @@
     tracks[0].enabled = !tracks[0].enabled;
     isVideoOn = tracks[0].enabled;
   };
-  const toggleMic = () => {
-    const tracks = localStream.getAudioTracks();
-    tracks[0].enabled = !tracks[0].enabled;
-    isMicOn = tracks[0].enabled;
-  };
+
+  $effect(() => {
+    console.log('Mic status:', isMicOn);
+    if (localStream) {
+      const tracks = localStream.getAudioTracks();
+      tracks[0].enabled = !tracks[0].enabled;
+      isMicOn = tracks[0].enabled;
+    }
+  });
+
+  $effect(() => {
+    console.log('Selected microphone:', selectedMicrophone);
+  });
+
   const stopMediaTracks = () => {
     ws?.close();
     peerConnection?.close();
@@ -192,6 +210,7 @@
     ws.send(JSON.stringify({ type: HANG_UP }));
     showHangUpModal = false;
     stopMediaTracks();
+    goto('/');
   };
 
   const shareEmoji = (emoji: string) => {
@@ -199,7 +218,6 @@
   };
 
   const handleClosedCaption = () => {
-    // TODO: Activate or deactivate Closed Caption with profanity detection
     isClosedCaptionOn = !isClosedCaptionOn;
   };
 </script>
@@ -242,45 +260,57 @@
         </div>
       </div>
     </div>
+    <div class="m-4 text-left text-gray-600">
+      <span class="font-normal"> Transcription: </span>
+      {#each messages as message}
+        <span class={message.profanityScore > 0.9 ? 'text-red-500 line-through' : ''}>
+          {message.text}
+        </span>
+      {/each}
+    </div>
     <div class="relative mt-4 flex w-full justify-center space-x-4">
-      <button
-        title="Toggle Microphone"
-        onclick={toggleMic}
-        class={`my-auto flex select-none rounded-full p-3 no-underline hover:opacity-70 ${isMicOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
-      >
-        <span class="material-symbols-outlined"> mic </span>
-      </button>
+      <MicrophoneSelector
+        bind:isMicOn
+        {showMicrophoneModal}
+        bind:selectedMicrophone
+        displayTop={true}
+      />
+
       <button
         title="Toggle Camera"
         onclick={toggleCamera}
-        class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:opacity-70 ${isVideoOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
+        class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:brightness-75 ${isVideoOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
       >
         <span class="material-symbols-outlined"> videocam </span>
       </button>
       <button
         onclick={handleClosedCaption}
-        class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:opacity-70 ${isClosedCaptionOn ? 'bg-gray-200 dark:text-black' : 'bg-green-500'}`}
+        class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:brightness-75 ${isClosedCaptionOn ? 'bg-green-500' : ' bg-gray-200 dark:text-black'}`}
       >
         <span class="material-symbols-outlined"> closed_caption </span>
       </button>
 
-      <Emojis {showEmojiModal} {isMoodOn} {shareEmoji} {receivedEmoji} />
+      <Emojis {showEmojiModal} {shareEmoji} {receivedEmoji} />
 
-      <button
+      <!-- <button
         onclick={() => (isBackHandOn = !isBackHandOn)}
-        class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:opacity-70 ${isBackHandOn ? 'bg-gray-200 dark:text-black' : ''}`}
+        class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:brightness-75 ${isBackHandOn ? 'bg-gray-200 dark:text-black' : ''}`}
       >
         <span class="material-symbols-outlined"> back_hand </span>
       </button>
       <button
         onclick={() => console.log('more option')}
-        class={`my-auto flex select-none items-center justify-center rounded-full bg-gray-200 px-2 py-3 no-underline hover:opacity-70`}
+        class={`my-auto flex select-none items-center justify-center rounded-full bg-gray-200 px-2 py-3 no-underline hover:brightness-75`}
       >
         <span class="material-symbols-outlined"> more_vert </span>
-      </button>
+      </button> -->
 
       <!-- Close meeting -->
-      <HangUp {handleHangUp} {showHangUpModal} />
+      <HangUp {handleHangUp} {showHangUpModal} displayTop={true} />
+
+      {#if isClosedCaptionOn}
+        <Transcription {roomID} {selectedMicrophone} bind:messages></Transcription>
+      {/if}
     </div>
   </div>
 </main>
