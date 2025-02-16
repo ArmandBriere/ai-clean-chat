@@ -28,36 +28,38 @@
   let meetingCode: string = $state('');
 
   // getRoomID function to fetch the room ID from the backend
-  async function setRoomID() {
+  async function createRoom(): Promise<string> {
     let resp = await fetch(`${PUBLIC_SERVER_URL}/api/backend/create`);
     const { room_id } = await resp.json();
 
-    meetingCode = room_id;
+    return room_id;
   }
 
   // Check if the input is empty
-  function isEmpty(item: string) {
+  function isEmpty(item: string): boolean {
     return item === '';
   }
 
   // onKeydown event handler function to submit form on Enter key press
-  function onKeyDown(e: KeyboardEvent) {
+  function onKeyDown(e: KeyboardEvent): void {
     if (e.key === 'Enter' || e.code === 'Enter') {
       goToMeeting();
     }
   }
 
   // Redirect to the meeting page
-  async function goToMeeting() {
+  async function goToMeeting(): Promise<void> {
     if (isEmpty(meetingCode)) {
-      await setRoomID();
+      console.debug('Meeting code is empty');
+      return;
     }
     goto(`/chat/${meetingCode}`);
   }
 
   // Redirect to the streaming page
-  async function goToStreaming() {
-    goto('/streaming');
+  async function newMeeting(): Promise<void> {
+    const roomId = await createRoom();
+    goto(`/chat/${roomId}`);
   }
 </script>
 
@@ -99,7 +101,7 @@
       </div>
       <div class="flex w-full justify-center space-x-4">
         <button
-          onclick={goToStreaming}
+          onclick={newMeeting}
           class="flex items-center rounded bg-blue-600 px-5 py-3 font-medium text-white"
         >
           <span class="material-symbols-outlined mr-2"> videocam </span>
