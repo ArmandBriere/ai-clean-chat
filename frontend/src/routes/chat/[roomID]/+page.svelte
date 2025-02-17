@@ -183,41 +183,54 @@
     }
   }
 
-  // Toggle microphone on/off
+  // Change media track locally and for others
+  const changeMediaDevice = async (deviceID: string, kind: 'audio' | 'video') => {
+    console.log(`Changing ${kind} device to:`, deviceID);
+    const tracks = localStream.getTracks().filter((track) => track.kind === kind);
+    if (tracks.length === 0) {
+      console.warn(`No ${kind} track found in localStream.`);
+      return;
+    }
+
+    tracks[0].stop();
+    localStream.removeTrack(tracks[0]);
+
+    const constraints: MediaStreamConstraints =
+      kind === 'audio' ? { audio: { deviceId: deviceID } } : { video: { deviceId: deviceID } };
+
+    try {
+      const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+      const newTrack = newStream.getTracks().find((track) => track.kind === kind);
+
+      if (!newTrack) {
+        console.error(`No ${kind} track found in new stream.`);
+        return;
+      }
+
+      localStream.addTrack(newTrack);
+
+      // Update track for others
+      peerConnection.getSenders().forEach((sender) => {
+        if (sender?.track?.kind === kind) {
+          sender.replaceTrack(newTrack);
+        }
+      });
+    } catch (error) {
+      console.error(`Error changing ${kind} device:`, error);
+    }
+  };
+
+  // Toggle On/Off
   const toggleMic = () => {
     const tracks = localStream.getAudioTracks();
     tracks[0].enabled = !tracks[0].enabled;
     isMicOn = tracks[0].enabled;
   };
 
-  const changeMic = async (micID: string) => {
-    console.log('Changing microphone to:', micID);
-    const tracks = localStream.getAudioTracks();
-    tracks[0].stop();
-    localStream.removeTrack(tracks[0]);
-    const newStream = await navigator.mediaDevices.getUserMedia({
-      audio: { deviceId: micID }
-    });
-    const newTrack = newStream.getAudioTracks()[0];
-    localStream.addTrack(newTrack);
-  };
-
-  // Toggle camera on/off
   const toggleCamera = () => {
     const tracks = localStream.getVideoTracks();
     tracks[0].enabled = !tracks[0].enabled;
     isVideoOn = tracks[0].enabled;
-  };
-
-  const changeCamera = async (cameraID: string) => {
-    const tracks = localStream.getVideoTracks();
-    tracks[0].stop();
-    localStream.removeTrack(tracks[0]);
-    const newStream = await navigator.mediaDevices.getUserMedia({
-      video: { deviceId: cameraID }
-    });
-    const newTrack = newStream.getVideoTracks()[0];
-    localStream.addTrack(newTrack);
   };
 
   const stopMediaTracks = () => {
@@ -324,7 +337,7 @@
           bind:selectedDevice={selectedMicrophone}
           isDeviceOn={isMicOn}
           closeDevice={toggleMic}
-          changeMediaSource={changeMic}
+          changeMediaSource={changeMediaDevice}
           displayTop={true}
         />
         <Selector
@@ -333,7 +346,7 @@
           bind:selectedDevice={selectedCamera}
           isDeviceOn={isVideoOn}
           closeDevice={toggleCamera}
-          changeMediaSource={changeCamera}
+          changeMediaSource={changeMediaDevice}
           displayTop={true}
         />
 

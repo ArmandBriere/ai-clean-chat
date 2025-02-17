@@ -15,17 +15,19 @@
     isDeviceOn: boolean;
     displayTop: boolean;
     closeDevice: () => void;
-    changeMediaSource: (deviceID: string) => void;
+    changeMediaSource: (deviceID: string, kind: 'audio' | 'video') => void;
     kind: 'audioinput' | 'videoinput';
   } = $props();
 
   let deviceList: MediaDeviceInfo[] = $state([]);
   let icon: string = $state('');
   let deviceName: string = $state('');
+  let mediaSourceKind: 'audio' | 'video' = 'audio';
 
   onMount(async () => {
     icon = kind === 'videoinput' ? 'videocam' : 'mic';
     deviceName = kind === 'videoinput' ? 'Camera' : 'Microphone';
+    mediaSourceKind = kind === 'videoinput' ? 'video' : 'audio';
 
     navigator.mediaDevices.enumerateDevices().then((devices) => {
       deviceList = devices.filter((device) => device.kind === kind);
@@ -35,7 +37,7 @@
   function setSelectedDevice(newDevice: MediaDeviceInfo) {
     if (selectedDevice != newDevice?.deviceId) {
       selectedDevice = newDevice?.deviceId || 'default';
-      changeMediaSource(selectedDevice);
+      changeMediaSource(selectedDevice, mediaSourceKind);
     }
     showModal = false;
   }
