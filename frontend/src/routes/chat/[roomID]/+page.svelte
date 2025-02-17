@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
+  import { page } from '$app/state';
+  import { goto } from '$app/navigation';
   import { PUBLIC_SERVER_WS_URL, PUBLIC_SERVER_URL } from '$env/static/public';
   import { v4 } from 'uuid';
   import { OFFER, ANSWER, ICE_CANDIDATE, HANG_UP } from '@/lib/constants/constants';
@@ -13,8 +15,6 @@
   import HangUp from '@/lib/components/HangUp.svelte';
   import Emojis from '@/lib/components/Emojis.svelte';
   import Transcription from '@/lib/components/Transcription.svelte';
-  import { page } from '$app/state';
-  import { goto } from '$app/navigation';
   import Selector from '@/lib/components/Selector.svelte';
 
   let roomID = page.params.roomID;
@@ -32,7 +32,6 @@
   let isMicOn = $state(true);
   let isVideoOn = $state(true);
   let isClosedCaptionOn = $state(false);
-  let isBackHandOn = $state(true);
 
   let showHangUpModal = $state(false);
   let showMicrophoneModal = $state(false);
@@ -44,7 +43,6 @@
   let messages: AnalyzedMessage[] = $state([]);
 
   onMount(() => {
-    console.log(otherVideo?.srcObject);
     // Connect to the signaling server
     ws = new WebSocket(`${PUBLIC_SERVER_WS_URL}/join?roomID=${roomID}&userID=${v4()}`);
 
@@ -123,7 +121,9 @@
     peerConnection.ontrack = (event) => {
       console.log('Received remote track:', event.streams);
       if (event.streams.length > 0) {
-        otherVideo.srcObject = event.streams[0];
+        if (otherVideo) {
+          otherVideo.srcObject = event.streams[0];
+        }
         connectedUsers = 2;
       }
     };
@@ -227,73 +227,72 @@
   };
 </script>
 
-<main class="h-screen max-h-screen bg-[rgb(25,25,25)] px-4 pt-4 transition-all">
-  <div class="relative flex h-full w-full max-w-screen-2xl flex-col">
-    <div class="h-full">
+<div class="fixed left-0 top-0 flex h-full min-h-full w-full flex-col bg-[rgb(25,25,25)]">
+  <div class="relative h-full w-full">
+    <main
+      class={`ease-[.5s cubic-bezier(0.4,0,0.2,1)] absolute ${!isClosedCaptionOn ? 'inset-[16px_16px_80px]' : 'inset-[16px_16px_300px]'} transition-[bottom,right]`}
+    >
       <div class="h-full transition-all duration-500 ease-in-out">
-        <div class="flex h-full justify-center overflow-hidden">
+        <div class="flex h-full justify-center">
+          <div
+            class={`h-full transform transition-all duration-500 ease-in-out ${connectedUsers === 2 ? 'absolute -right-0 bottom-0 max-h-52' : ''}`}
+          >
+            <video
+              class="aspect-video h-full object-cover"
+              class:rounded-lg={connectedUsers === 2}
+              class:border={connectedUsers === 2}
+              autoPlay
+              muted
+              playsInline
+              bind:this={userVideo}
+            >
+              Your browser does not support the video tag.
+            </video>
+          </div>
           <video
-            class="aspect-video h-full object-cover"
+            class:hidden={connectedUsers === 1}
+            class="aspect-video object-cover"
             autoPlay
             muted
             playsInline
-            bind:this={userVideo}
+            bind:this={otherVideo}
           >
             Your browser does not support the video tag.
           </video>
         </div>
       </div>
+    </main>
+  </div>
+  <!-- transcription -->
+  {#if isClosedCaptionOn}
+    <div class="absolute bottom-[5rem] left-0 right-0">
+      <div
+        class="relative left-[16px] right-[16px] flex h-[calc(12.5rem+16px)] w-[calc(100%-32px)] flex-col flex-nowrap items-center justify-end overflow-hidden"
+      >
+        <div class="absolute left-0 right-0 top-0 mx-4 my-2 flex h-8 items-center">
+          <h2 class="text-gray-200">Transcription</h2>
+        </div>
+        <div
+          class="absolute bottom-0 left-0 right-0 flex h-[9.75rem] translate-y-0 transform flex-nowrap justify-start overflow-y-auto pb-4 pl-[20vw] pr-4 pt-[0.875rem]"
+        >
+          {#each messages as message}
+            <span class={message.profanityScore > 0.9 ? 'text-red-500 line-through' : ''}>
+              {message.text}
+            </span>
+          {/each}
+        </div>
+      </div>
     </div>
-    <!-- <div class="relative aspect-video overflow-hidden rounded-lg bg-gray-900"> -->
-    <!--   <div -->
-    <!--     class={`h-full w-full ${connectedUsers === 2 ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`} -->
-    <!--   > -->
-    <!--     <div class="h-full w-full overflow-hidden rounded-lg border-2 border-white"> -->
-    <!--       <video -->
-    <!--         class="h-full w-full object-cover" -->
-    <!--         autoPlay -->
-    <!--         playsInline -->
-    <!--         muted -->
-    <!--         bind:this={otherVideo} -->
-    <!--       > -->
-    <!--         Your browser does not support the video tag. -->
-    <!--       </video> -->
-    <!--     </div> -->
-    <!--   </div> -->
-    <!--   <div -->
-    <!--     class={`absolute ${connectedUsers === 2 ? 'bottom-4 right-4 z-30 aspect-video w-1/4' : 'inset-0 z-10'} transition-all duration-500 ease-in-out`} -->
-    <!--   > -->
-    <!--     <div -->
-    <!--       class={`h-full w-full overflow-hidden rounded-lg ${ -->
-    <!--         connectedUsers === 2 ? 'border-2 border-white' : 'border-2 border-white shadow-lg' -->
-    <!--       }`} -->
-    <!--     > -->
-    <!--       <video -->
-    <!--         class="h-full w-full object-cover" -->
-    <!--         autoPlay -->
-    <!--         muted -->
-    <!--         playsInline -->
-    <!--         bind:this={userVideo} -->
-    <!--       > -->
-    <!--         Your browser does not support the video tag. -->
-    <!--       </video> -->
-    <!--     </div> -->
-    <!--   </div> -->
-    <!-- </div> -->
-    <div class="m-4 text-left text-gray-600">
-      <span class="font-normal"> Transcription: </span>
-      {#each messages as message}
-        <span class={message.profanityScore > 0.9 ? 'text-red-500 line-through' : ''}>
-          {message.text}
-        </span>
-      {/each}
-    </div>
+  {/if}
+  <!-- footer -->
+  <div class="absolute bottom-0 left-0 right-0">
     <div class="relative mt-auto flex h-20 w-full items-center justify-center">
       <div
         class="ml-3 flex h-full max-w-full flex-[1_1_25%] items-center overflow-hidden overflow-ellipsis text-start"
       >
-        <span class="text-white">
+        <span class="mx-3 text-white">
           <button title="Copy room id" onclick={shareMeetingURI}> {roomID}</button>
+          {connectedUsers}
         </span>
       </div>
       <div class="relative flex flex-[1_1_25%] justify-center space-x-4">
@@ -330,7 +329,7 @@
           <Transcription {roomID} {selectedMicrophone} bind:messages></Transcription>
         {/if}
       </div>
-      <div class="flex h-full flex-[1_1_25%] items-center justify-end">
+      <div class="mr-3 flex h-full flex-[1_1_25%] items-center justify-end">
         <nav class="flex">
           <div>
             <button
@@ -342,4 +341,4 @@
       </div>
     </div>
   </div>
-</main>
+</div>
