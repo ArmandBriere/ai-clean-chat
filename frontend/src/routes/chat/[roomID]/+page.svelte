@@ -183,6 +183,25 @@
     }
   }
 
+  // Toggle microphone on/off
+  const toggleMic = () => {
+    const tracks = localStream.getAudioTracks();
+    tracks[0].enabled = !tracks[0].enabled;
+    isMicOn = tracks[0].enabled;
+  };
+
+  const changeMic = async (micID: string) => {
+    console.log('Changing microphone to:', micID);
+    const tracks = localStream.getAudioTracks();
+    tracks[0].stop();
+    localStream.removeTrack(tracks[0]);
+    const newStream = await navigator.mediaDevices.getUserMedia({
+      audio: { deviceId: micID }
+    });
+    const newTrack = newStream.getAudioTracks()[0];
+    localStream.addTrack(newTrack);
+  };
+
   // Toggle camera on/off
   const toggleCamera = () => {
     const tracks = localStream.getVideoTracks();
@@ -190,11 +209,15 @@
     isVideoOn = tracks[0].enabled;
   };
 
-  // Toggle microphone on/off
-  const toggleMic = () => {
-    const tracks = localStream.getAudioTracks();
-    tracks[0].enabled = !tracks[0].enabled;
-    isMicOn = tracks[0].enabled;
+  const changeCamera = async (cameraID: string) => {
+    const tracks = localStream.getVideoTracks();
+    tracks[0].stop();
+    localStream.removeTrack(tracks[0]);
+    const newStream = await navigator.mediaDevices.getUserMedia({
+      video: { deviceId: cameraID }
+    });
+    const newTrack = newStream.getVideoTracks()[0];
+    localStream.addTrack(newTrack);
   };
 
   const stopMediaTracks = () => {
@@ -206,7 +229,6 @@
   const handleHangUp = () => {
     ws.send(JSON.stringify({ type: HANG_UP }));
     showHangUpModal = false;
-    stopMediaTracks();
     goto('/');
   };
 
@@ -302,6 +324,7 @@
           bind:selectedDevice={selectedMicrophone}
           isDeviceOn={isMicOn}
           closeDevice={toggleMic}
+          changeMediaSource={changeMic}
           displayTop={true}
         />
         <Selector
@@ -310,6 +333,7 @@
           bind:selectedDevice={selectedCamera}
           isDeviceOn={isVideoOn}
           closeDevice={toggleCamera}
+          changeMediaSource={changeCamera}
           displayTop={true}
         />
 
