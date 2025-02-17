@@ -273,7 +273,7 @@
           <h2 class="text-gray-200">Transcription</h2>
         </div>
         <div
-          class="absolute bottom-0 left-0 right-0 flex h-[9.75rem] translate-y-0 transform flex-nowrap justify-start overflow-y-auto pb-4 pl-[20vw] pr-4 pt-[0.875rem]"
+          class="absolute bottom-0 left-0 right-0 flex h-[9.75rem] translate-y-0 transform flex-nowrap justify-start overflow-y-auto whitespace-pre pb-4 pl-[20vw] pr-4 pt-[0.875rem] text-left text-white"
         >
           {#each messages as message}
             <span class={message.profanityScore > 0.9 ? 'text-red-500 line-through' : ''}>
