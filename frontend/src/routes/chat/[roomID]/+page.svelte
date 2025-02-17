@@ -227,38 +227,13 @@
   };
 </script>
 
-<main
-  class:p-16={isClosedCaptionOn}
-  class:py-8={!isClosedCaptionOn}
-  class="flex min-h-screen flex-col items-center justify-center bg-[rgb(25,25,25)] transition-all"
->
-  <div class="relative w-full max-w-screen-2xl">
-    <div class="relative aspect-video w-full overflow-hidden rounded-lg bg-gray-900">
-      <div
-        class={`h-full w-full ${connectedUsers === 2 ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}
-      >
-        <div class="h-full w-full overflow-hidden rounded-lg border-2 border-white">
+<main class="h-screen max-h-screen bg-[rgb(25,25,25)] px-4 pt-4 transition-all">
+  <div class="relative flex h-full w-full max-w-screen-2xl flex-col">
+    <div class="h-full">
+      <div class="h-full transition-all duration-500 ease-in-out">
+        <div class="flex h-full justify-center overflow-hidden">
           <video
-            class="h-full w-full object-cover"
-            autoPlay
-            playsInline
-            muted
-            bind:this={otherVideo}
-          >
-            Your browser does not support the video tag.
-          </video>
-        </div>
-      </div>
-      <div
-        class={`absolute ${connectedUsers === 2 ? 'bottom-4 right-4 z-30 aspect-video w-1/4' : 'inset-0 z-10'} transition-all duration-500 ease-in-out`}
-      >
-        <div
-          class={`h-full w-full overflow-hidden rounded-lg ${
-            connectedUsers === 2 ? 'border-2 border-white' : 'border-2 border-white shadow-lg'
-          }`}
-        >
-          <video
-            class="h-full w-full object-cover"
+            class="aspect-video h-full object-cover"
             autoPlay
             muted
             playsInline
@@ -269,6 +244,42 @@
         </div>
       </div>
     </div>
+    <!-- <div class="relative aspect-video overflow-hidden rounded-lg bg-gray-900"> -->
+    <!--   <div -->
+    <!--     class={`h-full w-full ${connectedUsers === 2 ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`} -->
+    <!--   > -->
+    <!--     <div class="h-full w-full overflow-hidden rounded-lg border-2 border-white"> -->
+    <!--       <video -->
+    <!--         class="h-full w-full object-cover" -->
+    <!--         autoPlay -->
+    <!--         playsInline -->
+    <!--         muted -->
+    <!--         bind:this={otherVideo} -->
+    <!--       > -->
+    <!--         Your browser does not support the video tag. -->
+    <!--       </video> -->
+    <!--     </div> -->
+    <!--   </div> -->
+    <!--   <div -->
+    <!--     class={`absolute ${connectedUsers === 2 ? 'bottom-4 right-4 z-30 aspect-video w-1/4' : 'inset-0 z-10'} transition-all duration-500 ease-in-out`} -->
+    <!--   > -->
+    <!--     <div -->
+    <!--       class={`h-full w-full overflow-hidden rounded-lg ${ -->
+    <!--         connectedUsers === 2 ? 'border-2 border-white' : 'border-2 border-white shadow-lg' -->
+    <!--       }`} -->
+    <!--     > -->
+    <!--       <video -->
+    <!--         class="h-full w-full object-cover" -->
+    <!--         autoPlay -->
+    <!--         muted -->
+    <!--         playsInline -->
+    <!--         bind:this={userVideo} -->
+    <!--       > -->
+    <!--         Your browser does not support the video tag. -->
+    <!--       </video> -->
+    <!--     </div> -->
+    <!--   </div> -->
+    <!-- </div> -->
     <div class="m-4 text-left text-gray-600">
       <span class="font-normal"> Transcription: </span>
       {#each messages as message}
@@ -277,41 +288,15 @@
         </span>
       {/each}
     </div>
-    <!-- TODO: add profanity detection -->
-    <!-- {#if isClosedCaptionOn} -->
-    <!--   <div -->
-    <!--     class="relative mt-2 flex w-full max-w-5xl flex-grow flex-col overflow-scroll border border-white p-2 text-white" -->
-    <!--   > -->
-    <!--     <div class="flex w-full justify-end"> -->
-    <!--       <label for="hide-profanity" class="flex cursor-pointer items-center"> -->
-    <!--         <div class="mr-3 text-gray-200"> Hide profanities </div> -->
-    <!--         <div class="relative"> -->
-    <!--           <input type="checkbox" id="hide-profanity" class="sr-only" /> -->
-    <!--           <div class="block h-8 w-14 rounded-full bg-gray-200"></div> -->
-    <!--           <div class="dot absolute left-1 top-1 h-6 w-6 rounded-full bg-gray-600 transition"> -->
-    <!--             <span class="material-symbols-outlined font-light"> close </span> -->
-    <!--           </div> -->
-    <!--         </div> -->
-    <!--       </label> -->
-    <!--     </div> -->
-    <!--     <p>> profanity section</p> -->
-    <!--     <p>> profanity section</p> -->
-    <!--     <p>> profanity section</p> -->
-    <!--     <p>> profanity section</p> -->
-    <!--     <p>> profanity section</p> -->
-    <!--     <p>> profanity section</p> -->
-    <!--     <p>> profanity section</p> -->
-    <!--   </div> -->
-    <!-- {/if} -->
-    <div class="relative mt-4 flex w-full justify-center">
+    <div class="relative mt-auto flex h-20 w-full items-center justify-center">
       <div
-        class="ml-3 flex max-w-full flex-[1_1_25%] items-center overflow-hidden overflow-ellipsis text-start"
+        class="ml-3 flex h-full max-w-full flex-[1_1_25%] items-center overflow-hidden overflow-ellipsis text-start"
       >
         <span class="text-white">
           <button title="Copy room id" onclick={shareMeetingURI}> {roomID}</button>
         </span>
       </div>
-      <div class="flex flex-[1_1_25%] justify-center space-x-4">
+      <div class="relative flex flex-[1_1_25%] justify-center space-x-4">
         <Selector
           showModal={showMicrophoneModal}
           kind="audioinput"
@@ -331,7 +316,7 @@
 
         <button
           onclick={handleClosedCaption}
-          class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:brightness-75 ${isClosedCaptionOn ? 'bg-green-500' : ' bg-gray-200 dark:text-black'}`}
+          class={`flex items-center justify-center rounded-full p-3 transition-colors ${isClosedCaptionOn ? 'bg-green-500 text-black' : 'bg-[#333537] text-gray-200 hover:bg-[#3f4245]'}`}
         >
           <span class="material-symbols-outlined"> closed_caption </span>
         </button>
@@ -345,7 +330,7 @@
           <Transcription {roomID} {selectedMicrophone} bind:messages></Transcription>
         {/if}
       </div>
-      <div class="flex flex-[1_1_25%] items-center justify-end">
+      <div class="flex h-full flex-[1_1_25%] items-center justify-end">
         <nav class="flex">
           <div>
             <button

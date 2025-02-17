@@ -41,18 +41,18 @@
 </script>
 
 <div class="relative inline-block">
-  <div class="flex rounded-full bg-white pl-1">
+  <div class="flex rounded-full bg-[#262729] pl-2">
     <button
       onclick={openModal}
-      class="my-auto flex select-none items-center justify-center rounded-full p-1 no-underline hover:brightness-75 dark:text-black"
+      class="flex items-center justify-center rounded-full p-1 text-gray-200"
     >
-      <span class="material-symbols-outlined">
-        {showModal ? 'arrow_drop_up' : 'arrow_drop_down'}
+      <span class="material-symbols-outlined font-light">
+        {showModal ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
       </span>
     </button>
     <button
       onclick={closeDevice}
-      class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:brightness-75 dark:text-black ${isDeviceOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
+      class={`flex items-center justify-center rounded-full p-3 transition-colors ${!isDeviceOn ? 'bg-red-500 text-black' : 'bg-[#333537] text-gray-200 hover:bg-[#444746]'}`}
     >
       <span class="material-symbols-outlined"> {icon} </span>
     </button>
