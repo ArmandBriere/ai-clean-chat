@@ -19,6 +19,7 @@
   import Emojis from '@/lib/components/Emojis.svelte';
   import Transcription from '@/lib/components/Transcription.svelte';
   import Selector from '@/lib/components/Selector.svelte';
+  import ToolTip from '@/lib/components/ToolTip.svelte';
 
   let roomID: string = page.params.roomID;
   let userVideo: HTMLVideoElement;
@@ -339,37 +340,46 @@
       </div>
 
       <div class="relative flex flex-[1_1_25%] justify-center space-x-4">
-        <Selector
-          showModal={showMicrophoneModal}
-          kind="audioinput"
-          bind:selectedDevice={selectedMicrophone}
-          isDeviceOn={isMicOn}
-          closeDevice={toggleMic}
-          changeMediaSource={changeMediaDevice}
-          displayTop={true}
-        />
-        <Selector
-          showModal={showCameraModal}
-          kind="videoinput"
-          bind:selectedDevice={selectedCamera}
-          isDeviceOn={isVideoOn}
-          closeDevice={toggleCamera}
-          changeMediaSource={changeMediaDevice}
-          displayTop={true}
-        />
+        <ToolTip displayText="Microphone settings">
+          <Selector
+            showModal={showMicrophoneModal}
+            kind="audioinput"
+            bind:selectedDevice={selectedMicrophone}
+            isDeviceOn={isMicOn}
+            closeDevice={toggleMic}
+            changeMediaSource={changeMediaDevice}
+            displayTop={true}
+          />
+        </ToolTip>
 
-        <button
-          onclick={handleClosedCaption}
-          class={`flex items-center justify-center rounded-full p-3 transition-colors ${isClosedCaptionOn ? 'bg-green-500 text-black' : 'bg-[#333537] text-gray-200 hover:bg-[#3f4245]'}`}
-        >
-          <span class="material-symbols-outlined"> closed_caption </span>
-        </button>
+        <ToolTip displayText="Camera settings">
+          <Selector
+            showModal={showCameraModal}
+            kind="videoinput"
+            bind:selectedDevice={selectedCamera}
+            isDeviceOn={isVideoOn}
+            closeDevice={toggleCamera}
+            changeMediaSource={changeMediaDevice}
+            displayTop={true}
+          />
+        </ToolTip>
 
-        <Emojis {showEmojiModal} {shareEmoji} {receivedEmoji} />
+        <ToolTip displayText="Activate live transcription">
+          <button
+            onclick={handleClosedCaption}
+            class={`flex items-center justify-center rounded-full p-3 transition-colors ${isClosedCaptionOn ? 'bg-green-500 text-black' : 'bg-[#333537] text-gray-200 hover:bg-[#3f4245]'}`}
+          >
+            <span class="material-symbols-outlined"> closed_caption </span>
+          </button>
+        </ToolTip>
 
-        <!-- Close meeting -->
-        <HangUp {handleHangUp} {showHangUpModal} displayTop={true} />
+        <ToolTip displayText="💩">
+          <Emojis {showEmojiModal} {shareEmoji} {receivedEmoji} />
+        </ToolTip>
 
+        <ToolTip displayText="Bye 👋">
+          <HangUp {handleHangUp} {showHangUpModal} displayTop={true} />
+        </ToolTip>
         {#if isClosedCaptionOn}
           <Transcription {roomID} {selectedMicrophone} bind:messages bind:llmAnalysis
           ></Transcription>
