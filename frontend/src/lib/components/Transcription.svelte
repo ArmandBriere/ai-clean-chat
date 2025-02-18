@@ -35,10 +35,13 @@
     startTranscriptionConnection();
   });
 
-  function setSelectedMicrophone() {
-    console.log('here', selectedMicrophone);
-    restartConnection();
-  }
+  // Restart connection when selected microphone changes
+  $effect(function restartConnectionOnMicUpdate() {
+    console.log('Updated selected microphone', selectedMicrophone);
+    if (selectedMicrophone) {
+      restartConnection();
+    }
+  });
 
   onDestroy(() => {
     cleanup();
@@ -71,6 +74,7 @@
               deviceId: selectedMicrophone
             }
           });
+
           if (streamTranscription) {
             streamTranscription.getTracks().forEach((track) => {
               pcTranscription?.addTrack(track);

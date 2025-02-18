@@ -18,7 +18,7 @@
   import Transcription from '@/lib/components/Transcription.svelte';
   import Selector from '@/lib/components/Selector.svelte';
 
-  let roomID = page.params.roomID;
+  let roomID: string = page.params.roomID;
   let userVideo: HTMLVideoElement;
   let otherVideo: HTMLVideoElement;
 
