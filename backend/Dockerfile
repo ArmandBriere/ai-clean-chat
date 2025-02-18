@@ -22,4 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /go/bin/air /usr/local/bin/air
 COPY --from=builder /app .
 
+# Copy the .env file
+COPY .env .env
+
 CMD ["air"]
