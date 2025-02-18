@@ -7,6 +7,7 @@
     isDeviceOn = true,
     displayTop = false,
     closeDevice = $bindable(),
+    changeMediaSource = $bindable(),
     kind = 'audioinput'
   }: {
     showModal: boolean;
@@ -14,16 +15,19 @@
     isDeviceOn: boolean;
     displayTop: boolean;
     closeDevice: () => void;
+    changeMediaSource: (deviceID: string, kind: 'audio' | 'video') => void;
     kind: 'audioinput' | 'videoinput';
   } = $props();
 
   let deviceList: MediaDeviceInfo[] = $state([]);
   let icon: string = $state('');
   let deviceName: string = $state('');
+  let mediaSourceKind: 'audio' | 'video' = 'audio';
 
   onMount(async () => {
     icon = kind === 'videoinput' ? 'videocam' : 'mic';
     deviceName = kind === 'videoinput' ? 'Camera' : 'Microphone';
+    mediaSourceKind = kind === 'videoinput' ? 'video' : 'audio';
 
     navigator.mediaDevices.enumerateDevices().then((devices) => {
       deviceList = devices.filter((device) => device.kind === kind);
@@ -31,7 +35,10 @@
   });
 
   function setSelectedDevice(newDevice: MediaDeviceInfo) {
-    selectedDevice = newDevice?.deviceId || 'default';
+    if (selectedDevice != newDevice?.deviceId) {
+      selectedDevice = newDevice?.deviceId || 'default';
+      changeMediaSource(selectedDevice, mediaSourceKind);
+    }
     showModal = false;
   }
 
@@ -59,17 +66,20 @@
   </div>
   {#if showModal}
     <div
-      class={`absolute left-1/2 ${displayTop ? 'bottom-16' : 'top-16'} z-10 w-max -translate-x-1/2 transform rounded-lg bg-gray-200 p-2 shadow-lg`}
+      class={`absolute left-1/2 ${displayTop ? 'bottom-16' : 'top-16'} z-10 flex w-max -translate-x-1/2 transform flex-col rounded-lg bg-gray-200 p-2 shadow-lg`}
     >
       <div
         class={`absolute ${displayTop ? '-bottom-2' : '-top-2'} left-1/2 z-10 h-4 w-4 -translate-x-1/2 rotate-45 transform bg-gray-200`}
       ></div>
       {#each deviceList as device}
-        <div class="relative z-20 mx-2 cursor-pointer select-none rounded p-1 hover:bg-gray-500">
-          <button class="m-0 w-full text-left text-sm" onclick={() => setSelectedDevice(device)}>
+        <button
+          class="relative z-20 mx-2 cursor-pointer select-none rounded p-1 hover:bg-gray-500"
+          onclick={() => setSelectedDevice(device)}
+        >
+          <div class="m-0 text-left text-sm">
             {device.label}
-          </button>
-        </div>
+          </div>
+        </button>
       {/each}
     </div>
   {/if}

@@ -183,18 +183,54 @@
     }
   }
 
-  // Toggle camera on/off
-  const toggleCamera = () => {
-    const tracks = localStream.getVideoTracks();
-    tracks[0].enabled = !tracks[0].enabled;
-    isVideoOn = tracks[0].enabled;
+  // Change media track locally and for others
+  const changeMediaDevice = async (deviceID: string, kind: 'audio' | 'video') => {
+    console.log(`Changing ${kind} device to:`, deviceID);
+    const tracks = localStream.getTracks().filter((track) => track.kind === kind);
+    if (tracks.length === 0) {
+      console.warn(`No ${kind} track found in localStream.`);
+      return;
+    }
+
+    tracks[0].stop();
+    localStream.removeTrack(tracks[0]);
+
+    const constraints: MediaStreamConstraints =
+      kind === 'audio' ? { audio: { deviceId: deviceID } } : { video: { deviceId: deviceID } };
+
+    try {
+      const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+      const newTrack = newStream.getTracks().find((track) => track.kind === kind);
+
+      if (!newTrack) {
+        console.error(`No ${kind} track found in new stream.`);
+        return;
+      }
+
+      localStream.addTrack(newTrack);
+
+      // Update track for others
+      peerConnection.getSenders().forEach((sender) => {
+        if (sender?.track?.kind === kind) {
+          sender.replaceTrack(newTrack);
+        }
+      });
+    } catch (error) {
+      console.error(`Error changing ${kind} device:`, error);
+    }
   };
 
-  // Toggle microphone on/off
+  // Toggle On/Off
   const toggleMic = () => {
     const tracks = localStream.getAudioTracks();
     tracks[0].enabled = !tracks[0].enabled;
     isMicOn = tracks[0].enabled;
+  };
+
+  const toggleCamera = () => {
+    const tracks = localStream.getVideoTracks();
+    tracks[0].enabled = !tracks[0].enabled;
+    isVideoOn = tracks[0].enabled;
   };
 
   const stopMediaTracks = () => {
@@ -206,7 +242,6 @@
   const handleHangUp = () => {
     ws.send(JSON.stringify({ type: HANG_UP }));
     showHangUpModal = false;
-    stopMediaTracks();
     goto('/');
   };
 
@@ -302,6 +337,7 @@
           bind:selectedDevice={selectedMicrophone}
           isDeviceOn={isMicOn}
           closeDevice={toggleMic}
+          changeMediaSource={changeMediaDevice}
           displayTop={true}
         />
         <Selector
@@ -310,6 +346,7 @@
           bind:selectedDevice={selectedCamera}
           isDeviceOn={isVideoOn}
           closeDevice={toggleCamera}
+          changeMediaSource={changeMediaDevice}
           displayTop={true}
         />
 
