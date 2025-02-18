@@ -3,13 +3,14 @@ package webrtcserver
 import (
 	"encoding/json"
 	"log/slog"
+	"sync"
 
 	"github.com/gorilla/websocket"
 	"github.com/pion/webrtc/v4"
 )
 
 // parseOfferMessage parses the offer message
-func parseOfferMessage(msg WebSocketMessage, peerConnection *webrtc.PeerConnection, wsConn *websocket.Conn) {
+func parseOfferMessage(msg WebSocketMessage, peerConnection *webrtc.PeerConnection, wsConn *websocket.Conn, mu *sync.Mutex) {
 	slog.Info("Offer message received")
 	sdp := msg.SDP
 	offer := webrtc.SessionDescription{Type: webrtc.SDPTypeOffer, SDP: sdp}
@@ -29,6 +30,8 @@ func parseOfferMessage(msg WebSocketMessage, peerConnection *webrtc.PeerConnecti
 		return
 	}
 
+	mu.Lock()
+	defer mu.Unlock()
 	if err := wsConn.WriteJSON(WebSocketMessage{Type: "answer", SDP: answer.SDP}); err != nil {
 		slog.Error("Error writing answer", "error", err)
 		return

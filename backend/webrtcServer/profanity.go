@@ -2,16 +2,23 @@ package webrtcserver
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"log/slog"
 	"net/http"
 	"strings"
+	"sync"
+
+	"github.com/gorilla/websocket"
+	"github.com/openai/openai-go"
 )
 
 type UserSession struct {
 	RoomID         string
 	UserID         string
 	sentenceBuffer string
+	client         *openai.Client
+	bufferCounter  int
 }
 
 // startNewSession starts a new session with the given roomID and userID
@@ -19,12 +26,19 @@ func (s *UserSession) startNewSession(roomID string, userID string) {
 	s.sentenceBuffer = ""
 	s.RoomID = roomID
 	s.UserID = userID
+	s.client = openai.NewClient()
+	s.bufferCounter = 0
 }
 
 // appendToBuffer appends the sentence to the sentence buffer
 func (s *UserSession) appendToBuffer(sentence string) {
 	s.sentenceBuffer += sentence
 
+	if s.bufferCounter >= PROFANITY_ANALYSIS_BUFFER_SIZE {
+		s.bufferCounter = 0
+	}
+
+	s.bufferCounter++
 	s.sentenceBuffer = keepXWords(s.sentenceBuffer, 8)
 }
 
@@ -53,7 +67,7 @@ func (s *UserSession) clearBuffer() {
 }
 
 // analyzeBuffer sends the sentence buffer to the profanity API and returns the profanity score
-func (s *UserSession) analyzeBuffer() (float64, error) {
+func (s *UserSession) analyzeBuffer(wsConn *websocket.Conn, mu *sync.Mutex) (float64, error) {
 
 	url := "http://profanity:8080/profanity"
 	data := PostData{
@@ -80,6 +94,50 @@ func (s *UserSession) analyzeBuffer() (float64, error) {
 		return 0, err
 	}
 
-	slog.Info("Profanity score", "score", responseData.ProfanityScore, "UserID", s.UserID, "RoomID", s.RoomID)
+	if responseData.ProfanityScore > 0.9 {
+		go s.llmAnalysis(wsConn, mu)
+	}
 	return responseData.ProfanityScore, nil
+}
+
+// llmAnalysis sends the sentence buffer to the LLM API and returns the analysis
+func (s *UserSession) llmAnalysis(wsConn *websocket.Conn, mu *sync.Mutex) error {
+
+	// Only analyze every PROFANITY_ANALYSIS_BUFFER_SIZE tokens
+	if s.bufferCounter < PROFANITY_ANALYSIS_BUFFER_SIZE {
+		return nil
+	}
+
+	userBuffer := s.sentenceBuffer
+
+	ctx := context.Background()
+	userMessage := openai.UserMessage(userBuffer)
+	systemMessage := openai.SystemMessage("As a helpful assistant, explain in under 20 words why the following text is considered profane.")
+
+	completion, err := s.client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
+		Messages: openai.F([]openai.ChatCompletionMessageParamUnion{
+			systemMessage,
+			userMessage,
+		}),
+		Model: openai.F(openai.ChatModelGPT4oMini),
+	})
+
+	if err != nil {
+		slog.Error("Error creating completion", "err", err)
+		return err
+	}
+	slog.Info("LLM answer", "content", completion.Choices[0].Message.Content)
+
+	mu.Lock()
+	defer mu.Unlock()
+	data := LLMAnalysis{
+		Type:        "llmAnalysis",
+		LLMMessage:  completion.Choices[0].Message.Content,
+		UserMessage: userBuffer,
+	}
+	if err := wsConn.WriteJSON(data); err != nil {
+		slog.Error("Error writing LLM analysis", "error", err)
+		return err
+	}
+	return nil
 }

@@ -8,6 +8,7 @@ import (
 	"log"
 	"log/slog"
 	"strings"
+	"sync"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -44,7 +45,7 @@ func init() {
 }
 
 // Transcribe transcribes the audio stream
-func transcribe(ctx context.Context, track *webrtc.TrackRemote, isStreaming *bool, wsConn *websocket.Conn) {
+func transcribe(ctx context.Context, track *webrtc.TrackRemote, isStreaming *bool, wsConn *websocket.Conn, mu *sync.Mutex) {
 
 	var last_text string
 	segment_idx := 0
@@ -102,19 +103,24 @@ func transcribe(ctx context.Context, track *webrtc.TrackRemote, isStreaming *boo
 				last_text = strings.ToLower(text)
 				slog.Info("Transcription", "text", last_text)
 				userSession.appendToBuffer(text)
-				profanityScore, err := userSession.analyzeBuffer()
+
+				profanityScore, err := userSession.analyzeBuffer(wsConn, mu)
 				if err != nil {
 					slog.Error("Error analyzing buffer", "error", err)
+					continue
 				}
 
 				slog.Info("Profanity score", "score", profanityScore)
+
 				uuid := uuid.New().String()
+				mu.Lock()
 				wsConn.WriteJSON(WebSocketTranscription{
 					Type:           "transcription",
 					Text:           last_text,
 					Uuid:           uuid,
 					ProfanityScore: profanityScore,
 				})
+				mu.Unlock()
 
 				recognizer.Reset(stream)
 			}

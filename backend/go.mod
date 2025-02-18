@@ -11,9 +11,11 @@ require (
 
 require (
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/k2-fsa/sherpa-onnx-go-linux v1.10.34 // indirect
 	github.com/k2-fsa/sherpa-onnx-go-macos v1.10.34 // indirect
 	github.com/k2-fsa/sherpa-onnx-go-windows v1.10.35 // indirect
+	github.com/openai/openai-go v0.1.0-alpha.59 // indirect
 	github.com/pion/datachannel v1.5.9 // indirect
 	github.com/pion/dtls/v3 v3.0.4 // indirect
 	github.com/pion/ice/v4 v4.0.3 // indirect
@@ -29,6 +31,10 @@ require (
 	github.com/pion/stun/v3 v3.0.0 // indirect
 	github.com/pion/transport/v3 v3.0.7 // indirect
 	github.com/pion/turn/v4 v4.0.0 // indirect
+	github.com/tidwall/gjson v1.14.4 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.1 // indirect
+	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/wlynxg/anet v0.0.5 // indirect
 	golang.org/x/crypto v0.29.0 // indirect
 	golang.org/x/net v0.31.0 // indirect
