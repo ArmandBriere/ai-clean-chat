@@ -27,3 +27,9 @@ type PostData struct {
 type PostResponse struct {
 	ProfanityScore float64 `json:"profanity_score"`
 }
+
+type LLMAnalysis struct {
+	Type        string `json:"type"`
+	LLMMessage  string `json:"llm_analysis"`
+	UserMessage string `json:"user_message"`
+}

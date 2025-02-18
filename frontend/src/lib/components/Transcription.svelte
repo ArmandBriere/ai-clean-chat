@@ -1,17 +1,25 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { PUBLIC_SERVER_WS_URL } from '$env/static/public';
-  import { ANSWER, ICE_CANDIDATE, STREAMING, TRANSCRIPTION } from '@/lib/constants/constants';
-  import type { AnalyzedMessage } from '@/lib/constants/types';
+  import {
+    ANSWER,
+    ICE_CANDIDATE,
+    STREAMING,
+    TRANSCRIPTION,
+    LLM_ANALYSIS
+  } from '@/lib/constants/constants';
+  import type { AnalyzedMessage, LLMAnalysis } from '@/lib/constants/types';
 
   let {
     roomID,
     selectedMicrophone,
-    messages = $bindable([])
+    messages = $bindable([]),
+    llmAnalysis = $bindable([])
   }: {
     roomID: string;
     selectedMicrophone: string;
     messages: AnalyzedMessage[];
+    llmAnalysis: LLMAnalysis[];
   } = $props();
 
   // Transcription
@@ -139,6 +147,14 @@
 
             const updatedMessages = [...messages, newMessage];
             messages = updatedMessages.slice(-25);
+          } else if (message.type === LLM_ANALYSIS) {
+            var newLLMAnalysis: LLMAnalysis = {
+              analysis: message.llm_analysis,
+              userMessage: message.user_message
+            };
+
+            const updatedLLMAnalysis = [...llmAnalysis, newLLMAnalysis];
+            llmAnalysis = updatedLLMAnalysis.slice(-25);
           }
         };
         startStreaming();
@@ -182,14 +198,3 @@
     streamTranscription?.getTracks().forEach((track) => track.stop());
   }
 </script>
-
-<!-- <div class="w-full justify-center text-center">
-  <div class="m-4 text-left text-gray-600">
-    <span class="font-normal"> Transcription: </span>
-    {#each messages as message}
-      <span class={message.profanityScore > 0.9 ? 'text-red-500 line-through' : ''}>
-        {message.text}
-      </span>
-    {/each}
-  </div>
-</div> -->

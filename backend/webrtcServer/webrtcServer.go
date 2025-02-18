@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"sync"
 
 	"github.com/gorilla/websocket"
 	"github.com/pion/webrtc/v4"
@@ -17,6 +18,7 @@ var upgrader = websocket.Upgrader{
 }
 
 var peerConnections = make(map[*websocket.Conn]*webrtc.PeerConnection)
+var mu sync.Mutex
 
 // AddWebRTCHandle starts the WebRTC server
 func AddWebRTCHandle() {
@@ -47,9 +49,16 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		slog.Error("New peer connection failed", "Error", err)
 		return
 	}
+	mu.Lock()
 	peerConnections[wsConn] = peerConnection
-	defer delete(peerConnections, wsConn)
-	defer peerConnection.Close()
+	mu.Unlock()
+
+	defer func() {
+		mu.Lock()
+		delete(peerConnections, wsConn)
+		mu.Unlock()
+		peerConnection.Close()
+	}()
 
 	// Listen for ICE candidates and write them to the WebSocket
 	peerConnection.OnICECandidate(func(i *webrtc.ICECandidate) {
@@ -63,6 +72,8 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		mu.Lock()
+		defer mu.Unlock()
 		if err := wsConn.WriteJSON(map[string]interface{}{"type": "iceCandidate", "candidate": string(candidate)}); err != nil {
 			slog.Error("Writing iceCandidate failed", "Error", err)
 			return
@@ -83,7 +94,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		if codecName == webrtc.MimeTypeOpus {
 			slog.Info("Track has started")
 
-			go handleAudioStream(ctx, track, &isStreaming, wsConn)
+			go handleAudioStream(ctx, track, &isStreaming, wsConn, &mu)
 		}
 	})
 
@@ -104,7 +115,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 		switch msg.Type {
 		case "offer":
-			parseOfferMessage(msg, peerConnection, wsConn)
+			parseOfferMessage(msg, peerConnection, wsConn, &mu)
 		case "iceCandidate":
 			parseIceCandidateMessage(msg, peerConnection)
 		case "streaming":
@@ -114,7 +125,9 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 				slog.Error("JSON marshal error", "Error", err)
 				continue
 			}
+			mu.Lock()
 			wsConn.WriteMessage(websocket.TextMessage, message)
+			mu.Unlock()
 		}
 	}
 }

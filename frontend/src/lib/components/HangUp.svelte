@@ -18,7 +18,7 @@
 <div class="relative inline-block">
   <button
     onclick={openModal}
-    class="my-auto flex select-none items-center justify-center rounded-full bg-red-500 p-3 no-underline hover:brightness-75"
+    class="flex select-none items-center justify-center rounded-full bg-red-600 p-3 px-5 text-gray-200 hover:brightness-105"
   >
     <span class="material-symbols-outlined"> call_end </span>
   </button>

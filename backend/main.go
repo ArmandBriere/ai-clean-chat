@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/joho/godotenv"
 	server "profanity.com/server"
 	webrtcServer "profanity.com/webrtcServer"
 )
@@ -16,6 +17,11 @@ func health(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	server.AllRooms.Init()
 
 	port := os.Getenv("PORT")
@@ -31,7 +37,7 @@ func main() {
 	webrtcServer.AddWebRTCHandle()
 
 	log.Println("Starting server on port " + port)
-	err := http.ListenAndServe(":"+port, nil)
+	err = http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		log.Fatal((err))
 	}

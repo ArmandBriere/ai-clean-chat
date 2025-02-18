@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -32,8 +33,8 @@ func getFileAndWriter(writer *oggwriter.OggWriter) (*os.File, *oggwriter.OggWrit
 }
 
 // handleAudioStream handles the audio stream by writing it to file
-func handleAudioStream(ctx context.Context, track *webrtc.TrackRemote, isStreaming *bool, wsConn *websocket.Conn) {
+func handleAudioStream(ctx context.Context, track *webrtc.TrackRemote, isStreaming *bool, wsConn *websocket.Conn, mu *sync.Mutex) {
 
 	// This take the audio stream for ever
-	transcribe(ctx, track, isStreaming, wsConn)
+	transcribe(ctx, track, isStreaming, wsConn, mu)
 }

@@ -7,6 +7,7 @@
     isDeviceOn = true,
     displayTop = false,
     closeDevice = $bindable(),
+    changeMediaSource = $bindable(),
     kind = 'audioinput'
   }: {
     showModal: boolean;
@@ -14,16 +15,19 @@
     isDeviceOn: boolean;
     displayTop: boolean;
     closeDevice: () => void;
+    changeMediaSource: (deviceID: string, kind: 'audio' | 'video') => void;
     kind: 'audioinput' | 'videoinput';
   } = $props();
 
   let deviceList: MediaDeviceInfo[] = $state([]);
   let icon: string = $state('');
   let deviceName: string = $state('');
+  let mediaSourceKind: 'audio' | 'video' = 'audio';
 
   onMount(async () => {
     icon = kind === 'videoinput' ? 'videocam' : 'mic';
     deviceName = kind === 'videoinput' ? 'Camera' : 'Microphone';
+    mediaSourceKind = kind === 'videoinput' ? 'video' : 'audio';
 
     navigator.mediaDevices.enumerateDevices().then((devices) => {
       deviceList = devices.filter((device) => device.kind === kind);
@@ -31,7 +35,10 @@
   });
 
   function setSelectedDevice(newDevice: MediaDeviceInfo) {
-    selectedDevice = newDevice?.deviceId || 'default';
+    if (selectedDevice != newDevice?.deviceId) {
+      selectedDevice = newDevice?.deviceId || 'default';
+      changeMediaSource(selectedDevice, mediaSourceKind);
+    }
     showModal = false;
   }
 
@@ -41,35 +48,38 @@
 </script>
 
 <div class="relative inline-block">
-  <div class="flex rounded-full bg-white pl-1">
+  <div class="flex rounded-full bg-[#262729] pl-2">
     <button
       onclick={openModal}
-      class="my-auto flex select-none items-center justify-center rounded-full p-1 no-underline hover:brightness-75 dark:text-black"
+      class="flex items-center justify-center rounded-full p-1 text-gray-200"
     >
-      <span class="material-symbols-outlined">
-        {showModal ? 'arrow_drop_up' : 'arrow_drop_down'}
+      <span class="material-symbols-outlined font-light">
+        {showModal ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
       </span>
     </button>
     <button
       onclick={closeDevice}
-      class={`my-auto flex select-none items-center justify-center rounded-full p-3 no-underline hover:brightness-75 dark:text-black ${isDeviceOn ? 'bg-gray-200 dark:text-black' : 'bg-red-500'}`}
+      class={`flex items-center justify-center rounded-full p-3 transition-colors ${!isDeviceOn ? 'bg-red-500 text-black' : 'bg-[#333537] text-gray-200 hover:bg-[#444746]'}`}
     >
       <span class="material-symbols-outlined"> {icon} </span>
     </button>
   </div>
   {#if showModal}
     <div
-      class={`absolute left-1/2 ${displayTop ? 'bottom-16' : 'top-16'} z-10 w-max -translate-x-1/2 transform rounded-lg bg-gray-200 p-2 shadow-lg`}
+      class={`absolute left-1/2 ${displayTop ? 'bottom-16' : 'top-16'} z-10 flex w-max -translate-x-1/2 transform flex-col rounded-lg bg-gray-200 p-2 shadow-lg`}
     >
       <div
         class={`absolute ${displayTop ? '-bottom-2' : '-top-2'} left-1/2 z-10 h-4 w-4 -translate-x-1/2 rotate-45 transform bg-gray-200`}
       ></div>
       {#each deviceList as device}
-        <div class="relative z-20 mx-2 cursor-pointer select-none rounded p-1 hover:bg-gray-500">
-          <button class="m-0 w-full text-left text-sm" onclick={() => setSelectedDevice(device)}>
+        <button
+          class="relative z-20 mx-2 cursor-pointer select-none rounded p-1 hover:bg-gray-500"
+          onclick={() => setSelectedDevice(device)}
+        >
+          <div class="m-0 text-left text-sm">
             {device.label}
-          </button>
-        </div>
+          </div>
+        </button>
       {/each}
     </div>
   {/if}
