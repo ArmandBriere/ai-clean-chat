@@ -18,3 +18,8 @@ export type AnalyzedMessage = {
   text: string;
   profanityScore: number;
 };
+
+export type LLMAnalysis = {
+  analysis: string;
+  userMessage: string;
+};

@@ -9,7 +9,8 @@
     StreamingOfferMessage,
     StreamingAnswerMessage,
     StreamingIceCandidateMessage,
-    AnalyzedMessage
+    AnalyzedMessage,
+    LLMAnalysis
   } from '@/lib/constants/types';
 
   import HangUp from '@/lib/components/HangUp.svelte';
@@ -41,6 +42,9 @@
 
   // Transcription
   let messages: AnalyzedMessage[] = $state([]);
+
+  // LLM Analysis
+  let llmAnalysis: LLMAnalysis[] = $state([]);
 
   onMount(() => {
     // Connect to the signaling server
@@ -316,6 +320,16 @@
             </span>
           {/each}
         </div>
+        <div>
+          {#each llmAnalysis as llmText}
+            <div class="w-1/2 pt-1 text-left">
+              <span class="font-bold text-white">{llmText.userMessage.toLowerCase()}:</span>
+              <span class="text-gray-200">
+                {llmText.analysis}
+              </span>
+            </div>
+          {/each}
+        </div>
       </div>
     </div>
   {/if}
@@ -363,7 +377,8 @@
         <HangUp {handleHangUp} {showHangUpModal} displayTop={true} />
 
         {#if isClosedCaptionOn}
-          <Transcription {roomID} {selectedMicrophone} bind:messages></Transcription>
+          <Transcription {roomID} {selectedMicrophone} bind:messages bind:llmAnalysis
+          ></Transcription>
         {/if}
       </div>
       <div class="mr-3 flex h-full flex-[1_1_25%] items-center justify-end">
