@@ -1,8 +1,10 @@
 <script lang="ts">
+  import MeetingID from '../../../lib/components/MeetingID.svelte';
+
   import { onMount, onDestroy } from 'svelte';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
-  import { PUBLIC_SERVER_WS_URL, PUBLIC_SERVER_URL } from '$env/static/public';
+  import { PUBLIC_SERVER_WS_URL } from '$env/static/public';
   import { v4 } from 'uuid';
   import { OFFER, ANSWER, ICE_CANDIDATE, HANG_UP } from '@/lib/constants/constants';
   import type {
@@ -256,14 +258,6 @@
   const handleClosedCaption = () => {
     isClosedCaptionOn = !isClosedCaptionOn;
   };
-
-  const shareMeetingURI = () => {
-    const copyText = `${PUBLIC_SERVER_URL}/chat/${roomID}`;
-    const theClipboard = navigator.clipboard;
-    // write text returns a promise, so use `then` to react to success
-    theClipboard.writeText(copyText).then(() => console.log('copied to clipboard'));
-    // TODO: animate tooltip to show copied to clipboard with data
-  };
 </script>
 
 <div class="fixed left-0 top-0 flex h-full min-h-full w-full flex-col bg-[rgb(25,25,25)]">
@@ -302,6 +296,7 @@
       </div>
     </main>
   </div>
+
   <!-- transcription -->
   {#if isClosedCaptionOn}
     <div class="absolute bottom-[5rem] left-0 right-0">
@@ -333,17 +328,16 @@
       </div>
     </div>
   {/if}
+
   <!-- footer -->
   <div class="absolute bottom-0 left-0 right-0">
     <div class="relative mt-auto flex h-20 w-full items-center justify-center">
       <div
-        class="ml-3 flex h-full max-w-full flex-[1_1_25%] items-center overflow-hidden overflow-ellipsis text-start"
+        class="relative ml-3 flex h-full max-w-full flex-[1_1_25%] items-center overflow-ellipsis text-start"
       >
-        <span class="mx-3 text-white">
-          <button title="Copy room id" onclick={shareMeetingURI}> {roomID}</button>
-          {connectedUsers}
-        </span>
+        <MeetingID {roomID} {connectedUsers} />
       </div>
+
       <div class="relative flex flex-[1_1_25%] justify-center space-x-4">
         <Selector
           showModal={showMicrophoneModal}
