@@ -150,6 +150,14 @@
             };
 
             const updatedMessages = [...messages, newMessage];
+
+            // Propagate profanity score to the 8 previous messages
+            if (newMessage.profanityScore > 0.9) {
+              const start = Math.max(0, updatedMessages.length - 8);
+              for (let i = start; i < updatedMessages.length; i++) {
+                updatedMessages[i].profanityScore = newMessage.profanityScore;
+              }
+            }
             messages = updatedMessages.slice(-25);
           } else if (message.type === LLM_ANALYSIS) {
             var newLLMAnalysis: LLMAnalysis = {
