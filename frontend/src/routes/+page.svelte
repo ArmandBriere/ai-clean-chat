@@ -65,7 +65,7 @@
   <Header />
 
   <div class="flex flex-grow">
-    <div class="grid-[1fr] m-auto grid w-full max-w-xl justify-center text-center">
+    <div class="grid-[1fr] m-auto grid w-full max-w-2xl justify-center text-center">
       <h1 class="mb-8 text-2xl"
         >AI-Powered Clean Talk:<br />Advanced Profanity Detection Patterns</h1
       >
