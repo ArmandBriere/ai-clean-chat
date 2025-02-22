@@ -48,7 +48,9 @@
   // Restart connection when selected microphone changes
   $effect(function stopStreamingOnMicMute() {
     console.log('Update microphone status', micStatus);
-    toggleStreaming();
+    if (micStatus != isStreaming) {
+      toggleStreaming();
+    }
   });
 
   onDestroy(() => {
