@@ -14,12 +14,14 @@
     roomID,
     selectedMicrophone,
     messages = $bindable([]),
-    llmAnalysis = $bindable([])
+    llmAnalysis = $bindable([]),
+    micStatus = $bindable(true)
   }: {
     roomID: string;
     selectedMicrophone: string;
     messages: AnalyzedMessage[];
     llmAnalysis: LLMAnalysis[];
+    micStatus: boolean;
   } = $props();
 
   // Transcription
@@ -27,7 +29,7 @@
   let pcTranscription: RTCPeerConnection | null = null;
   let streamTranscription: MediaStream | null = null;
 
-  let isStreaming = false;
+  let isStreaming = micStatus;
 
   onMount(async () => {
     console.log('Transcription component mounted');
@@ -41,6 +43,12 @@
     if (selectedMicrophone) {
       restartConnection();
     }
+  });
+
+  // Restart connection when selected microphone changes
+  $effect(function stopStreamingOnMicMute() {
+    console.log('Update microphone status', micStatus);
+    toggleStreaming();
   });
 
   onDestroy(() => {
@@ -169,7 +177,7 @@
             llmAnalysis = updatedLLMAnalysis.slice(-25);
           }
         };
-        startStreaming();
+        toggleStreaming();
       };
 
       wsTranscription.onclose = () => {
@@ -185,7 +193,7 @@
     }
   }
 
-  async function startStreaming() {
+  async function toggleStreaming() {
     if (wsTranscription) {
       isStreaming = !isStreaming;
       let message: StreamingMessage = {

@@ -381,8 +381,13 @@
           <HangUp {handleHangUp} {showHangUpModal} displayTop={true} />
         </ToolTip>
         {#if isClosedCaptionOn}
-          <Transcription {roomID} {selectedMicrophone} bind:messages bind:llmAnalysis
-          ></Transcription>
+          <Transcription
+            {roomID}
+            {selectedMicrophone}
+            bind:messages
+            bind:llmAnalysis
+            bind:micStatus={isMicOn}
+          />
         {/if}
       </div>
       <div class="mr-3 flex h-full flex-[1_1_25%] items-center justify-end">

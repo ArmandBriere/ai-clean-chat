@@ -107,7 +107,7 @@ func (s *UserSession) analyzeBuffer(wsConn *websocket.Conn, mu *sync.Mutex) (flo
 	endTime := time.Now()
 	s.tokenCounter += 1
 	s.timeToProfanity = s.timeToProfanity + endTime.Sub(startTime).Milliseconds()
-	slog.Info("Profanity analysis", "profanityScore", responseData.ProfanityScore, "svgTime", s.timeToProfanity/int64(s.tokenCounter))
+	slog.Info("Profanity analysis", "profanityScore", responseData.ProfanityScore, "avgTime", s.timeToProfanity/int64(s.tokenCounter))
 	return responseData.ProfanityScore, nil
 }
 
