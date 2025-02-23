@@ -1,5 +1,6 @@
 <script lang="ts">
   import { PUBLIC_SERVER_URL } from '$env/static/public';
+  import Toast from './Toast.svelte';
 
   let {
     roomID,
@@ -19,11 +20,7 @@
 </script>
 
 {#if showCopiedMessage}
-  <div
-    class="absolute bottom-16 flex w-max transform flex-col rounded-lg bg-gray-200/70 p-2 text-black shadow-lg"
-  >
-    Meeting URL has been copied
-  </div>
+  <Toast content="Copied meeting link." />
 {/if}
 <div class="flex-ro mx-1 flex items-center justify-center gap-1">
   <button
