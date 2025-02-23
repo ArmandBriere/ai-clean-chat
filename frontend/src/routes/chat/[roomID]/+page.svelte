@@ -278,7 +278,7 @@
             class={`h-full transform transition-all duration-500 ease-in-out ${connectedUsers === 2 ? 'absolute -right-0 bottom-0 max-h-52' : ''}`}
           >
             <video
-              class="aspect-video h-full object-cover"
+              class="aspect-video h-full rounded-md object-cover"
               class:rounded-lg={connectedUsers === 2}
               class:border={connectedUsers === 2}
               autoPlay
@@ -291,7 +291,7 @@
           </div>
           <video
             class:hidden={connectedUsers === 1}
-            class="aspect-video object-cover"
+            class="aspect-video rounded-md object-cover"
             autoPlay
             muted
             playsInline
