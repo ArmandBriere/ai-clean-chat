@@ -20,7 +20,7 @@
 
   const shareMeetingURI = () => {
     const theClipboard = navigator.clipboard;
-    theClipboard.writeText(copyText).then(() => console.log('copied to clipboard'));
+    theClipboard.writeText(meetingUrl).then(() => console.log('copied to clipboard'));
     isCopied = true;
     setTimeout(() => {
       isCopied = false;
