@@ -402,12 +402,14 @@
             <button
               onclick={handleInfoPanel}
               class="flex items-center justify-center rounded-full p-3 text-white transition-colors hover:bg-gray-200/10"
-              ><span class="material-symbols-outlined">info</span></button
+              ><span class="material-symbols-outlined" class:text-blue-600={showInfoPanel}
+                >info</span
+              ></button
             ></div
           >
         </nav>
       </div>
     </div>
   </div>
-  <InfoPanel {showInfoPanel} />
+  <InfoPanel {showInfoPanel} {roomID} handleClose={handleInfoPanel} />
 </div>
