@@ -94,28 +94,28 @@ uv run isort .
 
 The frontend is a Svelte application that uses WebRTC to handle the video chat and the backend to analyze the conversation.
 
-The frontend dependencies are managed with [bun](https://bun.sh/), you can install it with:
+The frontend dependencies are managed with [deno](https://docs.deno.com/runtime/getting_started/installation/), you can install it with:
 
 ```bash
-curl -fsSL https://bun.sh/install | bash
+curl -fsSL https://deno.land/install.sh | sh
 ```
 
 Then you can install the dependencies with:
 
 ```bash
-bun install
+deno install
 ```
 
 ### Run
 
-To run any command, prefix it with `bun run` as usual, for example:
+To run any command, prefix it with `deno run` as usual, for example:
 
 ```bash
 # Run a script
-bun run dev
+deno run dev
 
 # Run a command
-bun run prettier . --check
+deno run prettier . --check
 ```
 
 ## AI
