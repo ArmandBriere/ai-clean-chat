@@ -1,9 +1,13 @@
 from datetime import datetime
 
 import torch
-from transformers import BertModel, BertTokenizer
+from transformers import (
+    AutoModelForSequenceClassification,
+    AutoTokenizer,
+    BertModel,
+)
 
-from const import BASE_MODEL, DATA_FOLDER
+from const import DATA_FOLDER, MODERN_BERT_MODEL
 
 
 class BERTClassifier(torch.nn.Module):
@@ -28,13 +32,22 @@ class ProfanityModel:
 
     def load_model(self):
         """Load the BERT model and tokenizer."""
-        tokenizer = BertTokenizer.from_pretrained(BASE_MODEL)
+        selected_model = MODERN_BERT_MODEL
+        num_classes = 2
+
+        tokenizer = AutoTokenizer.from_pretrained(selected_model)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        model: BERTClassifier = BERTClassifier(BASE_MODEL, 2).to(device)
+        model: AutoModelForSequenceClassification = (
+            AutoModelForSequenceClassification.from_pretrained(
+                selected_model,
+                num_labels=num_classes,
+            ).to(device)
+        )
         model.load_state_dict(
             torch.load(
-                f"./{DATA_FOLDER}/bert_classifier.pth", map_location=torch.device("cpu")
+                f"./{DATA_FOLDER}/bert_classifier.pth",
+                map_location=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
             )
         )
 
@@ -45,7 +58,6 @@ class ProfanityModel:
 
     def predict(self, text, max_length=128):
         """Predict the sentiment of the text."""
-
         if self.model is None:
             self.load_model()
 
@@ -63,8 +75,13 @@ class ProfanityModel:
 
         with torch.no_grad():
             outputs = self.model(input_ids=input_ids, attention_mask=attention_mask)
+            # Get the logits from the outputs
+            logits = outputs.logits
+            # Apply softmax to get probabilities
+            probabilities = torch.softmax(logits, dim=1)
+            # Get the confidence score for the positive class (index 1)
+            confidence_score = probabilities[0][1].item()
 
-        confidence_score = torch.softmax(outputs, dim=1)[0][1].item()
         end = datetime.now()
         print(f"Total inference time = {end - start}")
         print(f"Confidence score: {confidence_score}")
