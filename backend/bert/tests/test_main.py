@@ -1,43 +1,9 @@
 import csv
-import json
 import re
 import uuid
 from collections import OrderedDict
 
 import matplotlib.pyplot as plt
-import pytest
-
-from bert.class_model import ProfanityModel
-
-
-@pytest.fixture()
-def test_data():
-    test_data_path = "tests/test_data.json"
-    with open(test_data_path, "r") as file:
-        data = json.load(file)["dataset"]
-
-    return data
-
-
-@pytest.fixture()
-def model():
-    """Load the model for testing."""
-
-    model = ProfanityModel()
-    model.load_model()
-    return model
-
-
-# def test_predict(test_data, model):
-#     """Test the predict function of the model."""
-
-#     for data in test_data:
-#         text = data["sentence"].replace("***", "uck")
-#         category = data["category"]
-
-#         result = model.predict(text)
-#         print(f"Input: {text}, Prediction: {result}, Category: {category}")
-#         assert result >= 0.9 if category == "profane" else result < 0.9
 
 
 def generate_ordered_word_map(text):
@@ -115,9 +81,8 @@ Does anyone have any concerns, or should we move forward with testing it?
     plt.bar(x_pos, profanity_scores, color="orange")
     plt.xticks(x_pos, words, rotation=80)
 
-
     plt.xlabel("Words")
     plt.ylabel("Profanity Score")
     plt.title("Profanity Score of Words")
-    
+
     plt.savefig("profanity_scores.png", bbox_inches="tight")

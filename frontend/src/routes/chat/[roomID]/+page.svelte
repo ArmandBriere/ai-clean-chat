@@ -6,7 +6,7 @@
   import { goto } from '$app/navigation';
   import { PUBLIC_SERVER_WS_URL } from '$env/static/public';
   import { v4 } from 'uuid';
-  import { OFFER, ANSWER, ICE_CANDIDATE, HANG_UP } from '@/lib/constants/constants';
+  import { OFFER, ANSWER, ICE_CANDIDATE, HANG_UP, EMOJI } from '@/lib/constants/constants';
   import type {
     StreamingOfferMessage,
     StreamingAnswerMessage,
@@ -72,8 +72,8 @@
         let data: StreamingIceCandidateMessage = message;
         await handleIceCandidate(data.payload);
       } else if (message.type == HANG_UP) {
-        connectedUsers = 1;
-      } else if (message.type == 'emoji') {
+        connectedUsers = Math.max(connectedUsers - 1, 1);
+      } else if (message.type == EMOJI) {
         receivedEmoji = message.payload;
       }
     };
@@ -253,7 +253,7 @@
   };
 
   const shareEmoji = (emoji: string) => {
-    ws.send(JSON.stringify({ type: 'emoji', payload: emoji }));
+    ws.send(JSON.stringify({ type: EMOJI, payload: emoji }));
   };
 
   const handleClosedCaption = () => {
@@ -381,8 +381,13 @@
           <HangUp {handleHangUp} {showHangUpModal} displayTop={true} />
         </ToolTip>
         {#if isClosedCaptionOn}
-          <Transcription {roomID} {selectedMicrophone} bind:messages bind:llmAnalysis
-          ></Transcription>
+          <Transcription
+            {roomID}
+            {selectedMicrophone}
+            bind:messages
+            bind:llmAnalysis
+            bind:micStatus={isMicOn}
+          />
         {/if}
       </div>
       <div class="mr-3 flex h-full flex-[1_1_25%] items-center justify-end">

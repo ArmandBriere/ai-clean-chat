@@ -14,12 +14,14 @@
     roomID,
     selectedMicrophone,
     messages = $bindable([]),
-    llmAnalysis = $bindable([])
+    llmAnalysis = $bindable([]),
+    micStatus = $bindable(true)
   }: {
     roomID: string;
     selectedMicrophone: string;
     messages: AnalyzedMessage[];
     llmAnalysis: LLMAnalysis[];
+    micStatus: boolean;
   } = $props();
 
   // Transcription
@@ -27,7 +29,7 @@
   let pcTranscription: RTCPeerConnection | null = null;
   let streamTranscription: MediaStream | null = null;
 
-  let isStreaming = false;
+  let isStreaming = micStatus;
 
   onMount(async () => {
     console.log('Transcription component mounted');
@@ -40,6 +42,14 @@
     console.log('Updated selected microphone', selectedMicrophone);
     if (selectedMicrophone) {
       restartConnection();
+    }
+  });
+
+  // Restart connection when selected microphone changes
+  $effect(function stopStreamingOnMicMute() {
+    console.log('Update microphone status', micStatus);
+    if (micStatus != isStreaming) {
+      toggleStreaming();
     }
   });
 
@@ -149,7 +159,20 @@
               profanityScore: message.profanity_score
             };
 
-            const updatedMessages = [...messages, newMessage];
+            const updatedMessages = [...messages, newMessage].map((msg, index, array) => {
+              if (
+                newMessage.profanityScore > 0.9 &&
+                index >= array.length - 8 &&
+                index < array.length
+              ) {
+                return {
+                  ...msg,
+                  profanityScore: newMessage.profanityScore
+                };
+              }
+              return msg;
+            });
+
             messages = updatedMessages.slice(-25);
           } else if (message.type === LLM_ANALYSIS) {
             var newLLMAnalysis: LLMAnalysis = {
@@ -161,7 +184,7 @@
             llmAnalysis = updatedLLMAnalysis.slice(-25);
           }
         };
-        startStreaming();
+        toggleStreaming();
       };
 
       wsTranscription.onclose = () => {
@@ -177,7 +200,7 @@
     }
   }
 
-  async function startStreaming() {
+  async function toggleStreaming() {
     if (wsTranscription) {
       isStreaming = !isStreaming;
       let message: StreamingMessage = {

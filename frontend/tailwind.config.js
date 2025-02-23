@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        roboto: 'Roboto, Times New Roman, serif'
+        roboto: 'Roboto, sans-serif'
       }
     }
   },

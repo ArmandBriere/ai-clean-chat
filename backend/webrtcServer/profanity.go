@@ -8,17 +8,20 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/openai/openai-go"
 )
 
 type UserSession struct {
-	RoomID         string
-	UserID         string
-	sentenceBuffer string
-	client         *openai.Client
-	bufferCounter  int
+	RoomID          string
+	UserID          string
+	sentenceBuffer  string
+	client          *openai.Client
+	bufferCounter   int
+	timeToProfanity int64
+	tokenCounter    int
 }
 
 // startNewSession starts a new session with the given roomID and userID
@@ -28,6 +31,8 @@ func (s *UserSession) startNewSession(roomID string, userID string) {
 	s.UserID = userID
 	s.client = openai.NewClient()
 	s.bufferCounter = 0
+	s.timeToProfanity = 0.0
+	s.tokenCounter = 0
 }
 
 // appendToBuffer appends the sentence to the sentence buffer
@@ -69,6 +74,7 @@ func (s *UserSession) clearBuffer() {
 // analyzeBuffer sends the sentence buffer to the profanity API and returns the profanity score
 func (s *UserSession) analyzeBuffer(wsConn *websocket.Conn, mu *sync.Mutex) (float64, error) {
 
+	startTime := time.Now()
 	url := "http://profanity:8080/profanity"
 	data := PostData{
 		Text: s.sentenceBuffer,
@@ -97,6 +103,11 @@ func (s *UserSession) analyzeBuffer(wsConn *websocket.Conn, mu *sync.Mutex) (flo
 	if responseData.ProfanityScore > 0.9 {
 		go s.llmAnalysis(wsConn, mu)
 	}
+
+	endTime := time.Now()
+	s.tokenCounter += 1
+	s.timeToProfanity = s.timeToProfanity + endTime.Sub(startTime).Milliseconds()
+	slog.Info("Profanity analysis", "profanityScore", responseData.ProfanityScore, "avgTime", s.timeToProfanity/int64(s.tokenCounter))
 	return responseData.ProfanityScore, nil
 }
 
@@ -112,7 +123,7 @@ func (s *UserSession) llmAnalysis(wsConn *websocket.Conn, mu *sync.Mutex) error 
 
 	ctx := context.Background()
 	userMessage := openai.UserMessage(userBuffer)
-	systemMessage := openai.SystemMessage("As a helpful assistant, explain in under 20 words why the following text is considered profane.")
+	systemMessage := openai.SystemMessage(LLM_PROMPT)
 
 	completion, err := s.client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
 		Messages: openai.F([]openai.ChatCompletionMessageParamUnion{
