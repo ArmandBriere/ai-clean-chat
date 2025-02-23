@@ -20,6 +20,7 @@
   import Transcription from '@/lib/components/Transcription.svelte';
   import Selector from '@/lib/components/Selector.svelte';
   import ToolTip from '@/lib/components/ToolTip.svelte';
+  import InfoPanel from '@/lib/components/InfoPanel.svelte';
 
   let roomID: string = page.params.roomID;
   let userVideo: HTMLVideoElement;
@@ -42,6 +43,7 @@
   let showCameraModal = $state(false);
   let showEmojiModal = $state(false);
   let receivedEmoji = $state('');
+  let showInfoPanel = $state(false);
 
   // Transcription
   let messages: AnalyzedMessage[] = $state([]);
@@ -259,12 +261,16 @@
   const handleClosedCaption = () => {
     isClosedCaptionOn = !isClosedCaptionOn;
   };
+
+  const handleInfoPanel = () => {
+    showInfoPanel = !showInfoPanel;
+  };
 </script>
 
 <div class="fixed left-0 top-0 flex h-full min-h-full w-full flex-col bg-[rgb(25,25,25)]">
   <div class="relative h-full w-full">
     <main
-      class={`ease-[.5s cubic-bezier(0.4,0,0.2,1)] absolute ${!isClosedCaptionOn ? 'inset-[16px_16px_80px]' : 'inset-[16px_16px_300px]'} transition-[bottom,right]`}
+      class={`ease-[.5s cubic-bezier(0.4,0,0.2,1)] absolute ${!isClosedCaptionOn ? (showInfoPanel ? 'inset-[16px_332px_80px_16px]' : 'inset-[16px_16px_80px]') : showInfoPanel ? 'inset-[16px_332px_300px_16px]' : 'inset-[16px_16px_300px]'} transition-[bottom,right]`}
     >
       <div class="h-full transition-all duration-500 ease-in-out">
         <div class="flex h-full justify-center">
@@ -394,6 +400,7 @@
         <nav class="flex">
           <div>
             <button
+              onclick={handleInfoPanel}
               class="flex items-center justify-center rounded-full p-3 text-white transition-colors hover:bg-gray-200/10"
               ><span class="material-symbols-outlined">info</span></button
             ></div
@@ -402,4 +409,5 @@
       </div>
     </div>
   </div>
+  <InfoPanel {showInfoPanel} />
 </div>
