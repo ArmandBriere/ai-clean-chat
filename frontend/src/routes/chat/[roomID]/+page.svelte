@@ -411,5 +411,10 @@
       </div>
     </div>
   </div>
-  <InfoPanel {showInfoPanel} {roomID} handleClose={handleInfoPanel} />
+  <InfoPanel
+    {showInfoPanel}
+    {roomID}
+    handleClose={handleInfoPanel}
+    analyses={[1, 2, 3, 4, 5, 6, 7, 8, 9]}
+  />
 </div>
