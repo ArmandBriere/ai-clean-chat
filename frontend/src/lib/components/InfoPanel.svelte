@@ -19,7 +19,6 @@
   let isCopied = $state(false);
 
   const shareMeetingURI = () => {
-    const copyText = `${PUBLIC_SERVER_URL}/chat/${roomID}`;
     const theClipboard = navigator.clipboard;
     theClipboard.writeText(copyText).then(() => console.log('copied to clipboard'));
     isCopied = true;
