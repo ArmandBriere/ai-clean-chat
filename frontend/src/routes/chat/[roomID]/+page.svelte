@@ -305,21 +305,21 @@
 
   <!-- transcription -->
   {#if isClosedCaptionOn}
-    <div class="absolute bottom-[5rem] left-0 right-0">
-      <div
-        class="relative left-[16px] right-[16px] flex h-[calc(12.5rem+16px)] w-[calc(100%-32px)] flex-col flex-nowrap items-center justify-end overflow-hidden"
-      >
-        <div class="absolute left-0 right-0 top-0 mx-4 my-2 flex h-8 items-center">
-          <h2 class="text-gray-200">Transcription</h2>
-        </div>
-        <div
-          class="absolute bottom-0 left-0 right-0 flex h-[9.75rem] translate-y-0 transform flex-nowrap justify-start overflow-y-auto whitespace-pre pb-4 pl-[20vw] pr-4 pt-[0.875rem] text-left text-white"
-        >
-          {#each messages as message}
-            <span class={message.profanityScore > 0.9 ? 'text-red-500 line-through' : ''}>
-              {message.text}
-            </span>
-          {/each}
+    <div class={`absolute bottom-[5rem] left-0 ${showInfoPanel ? 'right-[332px]' : 'right-0'}`}>
+      <div class="flex h-[calc(12.5rem+16px)] w-full flex-col px-4">
+        <h2 class="text-gray-200">Transcriptions</h2>
+        <div class="h-[9.75rem] py-4 text-left text-white">
+          <div class="overflow-hidden whitespace-normal">
+            {#each messages as message}
+              {#if message.profanityScore > 0.9}
+                <span class="text-red-500 line-through">
+                  {message.text}
+                </span>
+              {:else}
+                {message.text}
+              {/if}
+            {/each}
+          </div>
         </div>
       </div>
     </div>
