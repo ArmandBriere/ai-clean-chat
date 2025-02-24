@@ -1,11 +1,9 @@
 <script lang="ts">
-  import MeetingID from '../../../lib/components/MeetingID.svelte';
-
   import { onMount, onDestroy } from 'svelte';
+  import { v4 } from 'uuid';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { PUBLIC_SERVER_WS_URL } from '$env/static/public';
-  import { v4 } from 'uuid';
   import { OFFER, ANSWER, ICE_CANDIDATE, HANG_UP, EMOJI } from '@/lib/constants/constants';
   import type {
     StreamingOfferMessage,
@@ -15,6 +13,7 @@
     LLMAnalysis
   } from '@/lib/constants/types';
 
+  import MeetingID from '@/lib/components/MeetingID.svelte';
   import HangUp from '@/lib/components/HangUp.svelte';
   import Emojis from '@/lib/components/Emojis.svelte';
   import Transcription from '@/lib/components/Transcription.svelte';
@@ -322,16 +321,6 @@
             </span>
           {/each}
         </div>
-        <div>
-          {#each llmAnalysis as llmText}
-            <div class="w-1/2 pt-1 text-left">
-              <span class="font-bold text-white">{llmText.userMessage.toLowerCase()}:</span>
-              <span class="text-gray-200">
-                {llmText.analysis}
-              </span>
-            </div>
-          {/each}
-        </div>
       </div>
     </div>
   {/if}
@@ -411,10 +400,5 @@
       </div>
     </div>
   </div>
-  <InfoPanel
-    {showInfoPanel}
-    {roomID}
-    handleClose={handleInfoPanel}
-    analyses={[1, 2, 3, 4, 5, 6, 7, 8, 9]}
-  />
+  <InfoPanel {showInfoPanel} {roomID} handleClose={handleInfoPanel} {llmAnalysis} />
 </div>

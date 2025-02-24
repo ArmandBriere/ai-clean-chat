@@ -2,15 +2,16 @@
   import { PUBLIC_SERVER_URL } from '$env/static/public';
   import type { MouseEventHandler } from 'svelte/elements';
   import Toast from './Toast.svelte';
+  import type { LLMAnalysis } from '../constants/types';
   let {
     showInfoPanel = false,
     roomID,
-    analyses = [],
+    llmAnalysis = [],
     handleClose
   }: {
     showInfoPanel: boolean;
     roomID: string;
-    analyses: any[];
+    llmAnalysis: LLMAnalysis[];
     handleClose: MouseEventHandler<HTMLButtonElement>;
   } = $props();
 
@@ -58,11 +59,11 @@
       <div class="flex-grow overflow-scroll px-4">
         <!-- TODO: add analysis from LLM -->
         <!-- NOTE: need to manage maximum message list with First in first out -->
-        {#each analyses as analysis}
+        {#each llmAnalysis as analysis}
           <div class="mb-3 flex flex-col">
             <div class="text-sm font-light text-gray-500">At timestamp</div>
-            <div>keyword</div>
-            <div class="text-sm font-light">description</div>
+            <div>{analysis.userMessage.toLowerCase()}</div>
+            <div class="text-sm font-light">{analysis.analysis}</div>
           </div>
         {/each}
       </div>
