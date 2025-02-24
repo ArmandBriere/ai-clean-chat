@@ -23,5 +23,4 @@ export type LLMAnalysis = {
   analysis: string;
   userMessage: string;
   timestamp: string;
-  showRelativeTime?: boolean;
 };
