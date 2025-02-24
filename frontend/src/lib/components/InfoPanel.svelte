@@ -1,8 +1,9 @@
 <script lang="ts">
   import { PUBLIC_SERVER_URL } from '$env/static/public';
   import type { MouseEventHandler } from 'svelte/elements';
-  import Toast from './Toast.svelte';
   import type { LLMAnalysis } from '../constants/types';
+  import Toast from './Toast.svelte';
+  import ToolTip from './ToolTip.svelte';
   let {
     showInfoPanel = false,
     roomID,
@@ -27,6 +28,18 @@
       isCopied = false;
     }, 2000);
   };
+
+  function displayTime(timestamp: string): string {
+    // Parse the timestamp (assuming it's in "HH:mm:ss" format)
+    console.log(timestamp);
+    const timeParts = timestamp.split(':');
+    const hours = timeParts[0];
+    const minutes = timeParts[1];
+    const seconds = timeParts[2];
+
+    // Return the formatted time
+    return `${hours}:${minutes}:${seconds}`;
+  }
 </script>
 
 <div
@@ -56,12 +69,14 @@
       </div>
       <div class="my-2 border-t border-gray-300"></div>
       <!-- content -->
-      <div class="flex-grow overflow-scroll px-4">
+      <div class="flex-grow overflow-y-scroll px-4">
         <!-- TODO: add analysis from LLM -->
         <!-- NOTE: need to manage maximum message list with First in first out -->
         {#each llmAnalysis as analysis}
           <div class="mb-3 flex flex-col">
-            <div class="text-sm font-light text-gray-500">At timestamp</div>
+            <div class="cursor-default select-none text-sm font-light text-gray-500">
+              {displayTime(analysis.timestamp)}
+            </div>
             <div>{analysis.userMessage.toLowerCase()}</div>
             <div class="text-sm font-light">{analysis.analysis}</div>
           </div>

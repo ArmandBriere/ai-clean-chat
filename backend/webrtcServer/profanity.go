@@ -141,10 +141,18 @@ func (s *UserSession) llmAnalysis(wsConn *websocket.Conn, mu *sync.Mutex) error 
 
 	mu.Lock()
 	defer mu.Unlock()
+
+	location, err := time.LoadLocation("America/Toronto")
+	if err != nil {
+		slog.Error("Error loading location", "err", err)
+		return err
+	}
+
 	data := LLMAnalysis{
 		Type:        "llmAnalysis",
 		LLMMessage:  completion.Choices[0].Message.Content,
 		UserMessage: userBuffer,
+		Timestamp:   time.Now().In(location).Format("15:04:05"),
 	}
 	if err := wsConn.WriteJSON(data); err != nil {
 		slog.Error("Error writing LLM analysis", "error", err)
