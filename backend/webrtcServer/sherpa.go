@@ -102,7 +102,7 @@ func transcribe(ctx context.Context, track *webrtc.TrackRemote, isStreaming *boo
 			if len(text) != 0 && last_text != text {
 				last_text = strings.ToLower(text)
 				slog.Info("Transcription", "text", last_text)
-				userSession.appendToBuffer(text)
+				userSession.appendToBuffer(last_text)
 
 				profanityScore, err := userSession.analyzeBuffer(wsConn, mu)
 				if err != nil {
