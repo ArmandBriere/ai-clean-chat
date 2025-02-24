@@ -5,6 +5,7 @@
   import { goto } from '$app/navigation';
   import { PUBLIC_SERVER_WS_URL } from '$env/static/public';
   import { OFFER, ANSWER, ICE_CANDIDATE, HANG_UP, EMOJI } from '@/lib/constants/constants';
+  import avatar from '$lib/assets/avatar.jpeg';
   import type {
     StreamingOfferMessage,
     StreamingAnswerMessage,
@@ -309,17 +310,26 @@
       <div class="flex h-[calc(12.5rem+16px)] w-full flex-col px-4">
         <h2 class="text-gray-200">Transcriptions</h2>
         <div class="h-[9.75rem] py-4 text-left text-white">
-          <div class="overflow-hidden whitespace-normal">
-            {#each messages as message}
-              {#if message.profanityScore > 0.9}
-                <span class="text-red-500 line-through">
+          {#if messages.length > 0}
+            <div class="sticky top-0 z-[1] flex h-16">
+              <img src={avatar} alt="" class="h-10 w-10 rounded-full" />
+              <div class="h-fit w-full pl-4 font-medium text-gray-300">
+                {v4().slice(0, 4)}
+              </div>
+            </div>
+
+            <div class="relative -m-10 min-h-10 overflow-hidden whitespace-normal pl-24">
+              {#each messages as message}
+                {#if message.profanityScore > 0.9}
+                  <span class="text-red-500 line-through">
+                    {message.text}
+                  </span>
+                {:else}
                   {message.text}
-                </span>
-              {:else}
-                {message.text}
-              {/if}
-            {/each}
-          </div>
+                {/if}
+              {/each}
+            </div>
+          {/if}
         </div>
       </div>
     </div>
