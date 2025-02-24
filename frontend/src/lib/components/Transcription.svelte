@@ -177,7 +177,8 @@
           } else if (message.type === LLM_ANALYSIS) {
             var newLLMAnalysis: LLMAnalysis = {
               analysis: message.llm_analysis,
-              userMessage: message.user_message
+              userMessage: message.user_message,
+              timestamp: message.timestamp
             };
 
             const updatedLLMAnalysis = [...llmAnalysis, newLLMAnalysis];

@@ -32,4 +32,5 @@ type LLMAnalysis struct {
 	Type        string `json:"type"`
 	LLMMessage  string `json:"llm_analysis"`
 	UserMessage string `json:"user_message"`
+	Timestamp   string `json:"timestamp"`
 }
