@@ -29,7 +29,7 @@
   let pcTranscription: RTCPeerConnection | null = null;
   let streamTranscription: MediaStream | null = null;
 
-  let isStreaming = true;
+  let isStreaming = micStatus;
 
   onMount(async () => {
     console.log('Transcription component mounted');
