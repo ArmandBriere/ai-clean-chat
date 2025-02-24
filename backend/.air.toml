@@ -5,10 +5,16 @@ tmp_dir = "tmp"
 args_bin = []
 bin = "./tmp/main"
 cmd = "CGO_ENABLED=1 go build -o ./tmp/main ."
-delay = 1000                                   # ms
-exclude_dir = ["tmp", "vendor"]
+delay = 1000 # ms
+exclude_dir = [
+    "tmp",
+    "vendor",
+    "sherpa-onnx-streaming-zipformer-en-2023-06-26",
+    "sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20",
+    "sherpa-onnx-streaming-zipformer-en-20M-2023-02-17",
+]
 include_ext = ["go", "tpl", "html"]
-kill_delay = 500                               # ms
+kill_delay = 500 # ms
 log = "build-errors.log"
 send_interrupt = true
 stop_on_error = true
