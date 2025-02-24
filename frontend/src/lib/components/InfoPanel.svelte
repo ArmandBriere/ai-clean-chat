@@ -28,18 +28,6 @@
       isCopied = false;
     }, 2000);
   };
-
-  function displayTime(timestamp: string): string {
-    // Parse the timestamp (assuming it's in "HH:mm:ss" format)
-    console.log(timestamp);
-    const timeParts = timestamp.split(':');
-    const hours = timeParts[0];
-    const minutes = timeParts[1];
-    const seconds = timeParts[2];
-
-    // Return the formatted time
-    return `${hours}:${minutes}:${seconds}`;
-  }
 </script>
 
 <div
@@ -75,7 +63,7 @@
         {#each llmAnalysis as analysis}
           <div class="mb-3 flex flex-col">
             <div class="cursor-default select-none text-sm font-light text-gray-500">
-              {displayTime(analysis.timestamp)}
+              {analysis.timestamp}
             </div>
             <div>{analysis.userMessage.toLowerCase()}</div>
             <div class="text-sm font-light">{analysis.analysis}</div>
