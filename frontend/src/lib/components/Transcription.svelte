@@ -184,7 +184,7 @@
             llmAnalysis = updatedLLMAnalysis.slice(-25);
           }
         };
-        toggleStreaming();
+        toggleStreaming(true);
       };
 
       wsTranscription.onclose = () => {
@@ -200,9 +200,13 @@
     }
   }
 
-  async function toggleStreaming() {
+  async function toggleStreaming(forceStart?: boolean) {
     if (wsTranscription) {
+      console.log('Toggling streaming', isStreaming);
       isStreaming = !isStreaming;
+      if (forceStart) {
+        isStreaming = true;
+      }
       let message: StreamingMessage = {
         type: 'streaming',
         isStreaming: isStreaming
