@@ -56,7 +56,7 @@
       </div>
       <div class="my-2 border-t border-gray-300"></div>
       <!-- content -->
-      <div class="flex-grow overflow-scroll px-4">
+      <div class="flex-grow overflow-y-scroll px-4">
         <!-- TODO: add analysis from LLM -->
         <!-- NOTE: need to manage maximum message list with First in first out -->
         {#each llmAnalysis as analysis}
