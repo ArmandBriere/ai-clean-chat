@@ -3,7 +3,6 @@
   import type { MouseEventHandler } from 'svelte/elements';
   import type { LLMAnalysis } from '../constants/types';
   import Toast from './Toast.svelte';
-  import ToolTip from './ToolTip.svelte';
   let {
     showInfoPanel = false,
     roomID,
@@ -18,7 +17,12 @@
 
   let meetingUrl = `${PUBLIC_SERVER_URL}/chat/${roomID}`;
 
+  let computedLlmAnalysis = $state([]) as LLMAnalysis[];
   let isCopied = $state(false);
+
+  $effect(() => {
+    computedLlmAnalysis = llmAnalysis.slice(-10).reverse();
+  });
 
   const shareMeetingURI = () => {
     const theClipboard = navigator.clipboard;
@@ -60,7 +64,7 @@
       <div class="flex-grow overflow-y-scroll px-4">
         <!-- TODO: add analysis from LLM -->
         <!-- NOTE: need to manage maximum message list with First in first out -->
-        {#each llmAnalysis as analysis}
+        {#each computedLlmAnalysis as analysis}
           <div class="mb-3 flex flex-col">
             <div class="cursor-default select-none text-sm font-light text-gray-500">
               {analysis.timestamp}
