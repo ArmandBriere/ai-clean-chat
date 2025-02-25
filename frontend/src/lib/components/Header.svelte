@@ -14,7 +14,7 @@
       <div class="flex items-center space-x-4">
         <Image src={logo1} alt="logo" class="w-full object-contain" />
         <Image src={logo2} alt="logo" class="w-full object-contain" />
-        <Image src={logo3} alt="logo" class="w-full object-contain" />
+        <Image src={logo3} alt="logo" class="w-3/4 object-contain" />
       </div>
     </a>
     <!-- right nav -->
