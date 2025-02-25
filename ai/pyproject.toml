@@ -1,0 +1,19 @@
+[project]
+name = "ai"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "datasets>=3.3.2",
+    "modal>=0.73.66",
+    "scikit-learn>=1.6.1",
+    "torch>=2.6.0",
+    "tqdm>=4.67.1",
+    "transformers>=4.49.0",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.9.7",
+]

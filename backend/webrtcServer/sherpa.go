@@ -51,7 +51,6 @@ func init() {
 func transcribe(ctx context.Context, track *webrtc.TrackRemote, isStreaming *bool, wsConn *websocket.Conn, mu *sync.Mutex) {
 
 	var last_text string
-	segment_idx := 0
 
 	// Create an Opus decoder
 	decoder, err := opus.NewDecoder(INPUT_SAMPLE_RATE, 1) // Mono channel
@@ -126,14 +125,6 @@ func transcribe(ctx context.Context, track *webrtc.TrackRemote, isStreaming *boo
 				mu.Unlock()
 
 				recognizer.Reset(stream)
-			}
-
-			if recognizer.IsEndpoint(stream) {
-				if len(text) != 0 {
-					segment_idx++
-					fmt.Println()
-					recognizer.Reset(stream)
-				}
 			}
 		}
 	}

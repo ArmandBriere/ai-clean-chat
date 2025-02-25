@@ -9,7 +9,9 @@ Both of the model are only available in English.
 
 ## Speech-to-text
 
-The speech-to-text model is Whisper, a model developed by [OpenAI](https://openai.com) that is able to transcribe speech to text.
+The speech-to-text model is Sherpa-onnx, a model developed by [K2-fsa](https://github.com/k2-fsa/sherpa-onnx) that is able to transcribe speech to text.
+
+The code is available in the `backend` folder in the `sherpa-onnx` folder.
 
 ## Text classification
 
