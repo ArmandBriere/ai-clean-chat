@@ -17,12 +17,8 @@
 
   let meetingUrl = `${PUBLIC_SERVER_URL}/chat/${roomID}`;
 
-  let computedLlmAnalysis = $state([]) as LLMAnalysis[];
+  let computedLlmAnalysis = $derived(llmAnalysis.slice(-15).reverse());
   let isCopied = $state(false);
-
-  $effect(() => {
-    computedLlmAnalysis = llmAnalysis.slice(-10).reverse();
-  });
 
   const shareMeetingURI = () => {
     const theClipboard = navigator.clipboard;
