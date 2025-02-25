@@ -17,12 +17,58 @@ import (
 	"github.com/pion/webrtc/v4"
 )
 
-var stream *sherpa.OnlineStream
-var recognizer *sherpa.OnlineRecognizer
+var (
+	recognizer  *sherpa.OnlineRecognizer
+	streamPool  *sync.Pool
+	initialized bool
+	initMutex   sync.Mutex
+)
 
 // init initializes the recognizer and stream
 func init() {
+	slog.Info("Stream created!")
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
+
+	// Ensure initialization happens only once
+	initializeRecognizer()
+
+	// Initialize the stream pool
+	streamPool = &sync.Pool{
+		New: func() interface{} {
+			slog.Info("Creating a new stream instance")
+			return sherpa.NewOnlineStream(recognizer)
+		},
+	}
+
+	// Pre-warm the pool
+	stream01 := GetStream()
+	stream02 := GetStream()
+
+	PutStream(stream01)
+	PutStream(stream02)
+
+	slog.Info("Stream pool initialized!")
+}
+
+// GetStream retrieves a stream from the pool
+func GetStream() *sherpa.OnlineStream {
+	return streamPool.Get().(*sherpa.OnlineStream)
+}
+
+// PutStream returns a stream to the pool after use
+func PutStream(stream *sherpa.OnlineStream) {
+	streamPool.Put(stream)
+}
+
+// initializeRecognizer initializes the recognizer if it hasn't been initialized yet
+func initializeRecognizer() {
+	initMutex.Lock()
+	defer initMutex.Unlock()
+
+	if initialized {
+		return
+	}
+
 	config := sherpa.OnlineRecognizerConfig{}
 	config.FeatConfig = sherpa.FeatureConfig{SampleRate: MODEL_SAMPLE_RATE, FeatureDim: 80}
 
@@ -43,8 +89,7 @@ func init() {
 	recognizer = sherpa.NewOnlineRecognizer(&config)
 	slog.Info("Recognizer created!")
 
-	stream = sherpa.NewOnlineStream(recognizer)
-	slog.Info("Stream created!")
+	initialized = true
 }
 
 // Transcribe transcribes the audio stream
@@ -60,6 +105,8 @@ func transcribe(ctx context.Context, track *webrtc.TrackRemote, isStreaming *boo
 
 	userSession := UserSession{}
 	userSession.startNewSession("roomID", "userID")
+	stream := GetStream()
+	defer PutStream(stream)
 
 	for {
 		select {
@@ -68,6 +115,7 @@ func transcribe(ctx context.Context, track *webrtc.TrackRemote, isStreaming *boo
 			return
 		default:
 			rtpPacket, _, err := track.ReadRTP()
+
 			if err != nil {
 				slog.Error("Failed to read RTP packet", "packet", err)
 				recognizer.Reset(stream)
