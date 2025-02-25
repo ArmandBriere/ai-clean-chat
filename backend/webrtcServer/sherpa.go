@@ -26,14 +26,17 @@ func init() {
 	config := sherpa.OnlineRecognizerConfig{}
 	config.FeatConfig = sherpa.FeatureConfig{SampleRate: MODEL_SAMPLE_RATE, FeatureDim: 80}
 
-	config.ModelConfig.NumThreads = 8
+	config.ModelConfig.NumThreads = 10
 	config.ModelConfig.Debug = 0
 	config.ModelConfig.Provider = "cpu"
 
-	defaultPath := "sherpa-onnx-streaming-zipformer-en-20M-2023-02-17/"
-	config.ModelConfig.Transducer.Encoder = "./" + defaultPath + "encoder-epoch-99-avg-1.onnx"
-	config.ModelConfig.Transducer.Decoder = "./" + defaultPath + "decoder-epoch-99-avg-1.onnx"
-	config.ModelConfig.Transducer.Joiner = "./" + defaultPath + "joiner-epoch-99-avg-1.onnx"
+	// defaultPath := "sherpa-onnx-streaming-zipformer-en-20M-2023-02-17/"
+	// defaultPath := "sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20/"
+	defaultPath := "sherpa-onnx-streaming-zipformer-en-2023-06-26/"
+
+	config.ModelConfig.Transducer.Encoder = "./" + defaultPath + "encoder.onnx"
+	config.ModelConfig.Transducer.Decoder = "./" + defaultPath + "decoder.onnx"
+	config.ModelConfig.Transducer.Joiner = "./" + defaultPath + "joiner.onnx"
 	config.ModelConfig.Tokens = "./" + defaultPath + "tokens.txt"
 
 	slog.Info("Initializing recognizer (may take several seconds)")
@@ -48,7 +51,6 @@ func init() {
 func transcribe(ctx context.Context, track *webrtc.TrackRemote, isStreaming *bool, wsConn *websocket.Conn, mu *sync.Mutex) {
 
 	var last_text string
-	segment_idx := 0
 
 	// Create an Opus decoder
 	decoder, err := opus.NewDecoder(INPUT_SAMPLE_RATE, 1) // Mono channel
@@ -123,14 +125,6 @@ func transcribe(ctx context.Context, track *webrtc.TrackRemote, isStreaming *boo
 				mu.Unlock()
 
 				recognizer.Reset(stream)
-			}
-
-			if recognizer.IsEndpoint(stream) {
-				if len(text) != 0 {
-					segment_idx++
-					fmt.Println()
-					recognizer.Reset(stream)
-				}
 			}
 		}
 	}

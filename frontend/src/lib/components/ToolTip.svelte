@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import type { Snippet } from 'svelte';
 
-  let showTooltip = $state(false);
   let {
     displayText = '',
     children

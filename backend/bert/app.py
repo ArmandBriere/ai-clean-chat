@@ -6,13 +6,16 @@ from flask_cors import cross_origin
 from class_model import ProfanityModel
 
 # Configure logging to show INFO messages
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 app = Flask(__name__)
 
 model = ProfanityModel()
 logging.info("Start loading the model...")
 model.load_model()
+logging.info("Model loaded successfully.")
 
 
 @app.route("/profanity", methods=["POST"])
@@ -35,7 +38,6 @@ def post_profanity():
 @cross_origin()
 def health():
     return {"status": "healthy"}
-
 
 
 if __name__ == "__main__":
