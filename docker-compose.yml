@@ -1,11 +1,11 @@
 services:
   traefik:
-    image: traefik  # Ensure you're using the latest version
+    image: traefik
     container_name: ai-clean-chat-traefik
     ports:
       - "443:443"
-      - "80:80"  # HTTP access
-      - "8080:8080"  # Traefik dashboard
+      - "80:80"
+      - "8080:8080"
     volumes:
       - "./traefik/dynamic:/etc/traefik/dynamic"
       - "./traefik/traefik.yml:/etc/traefik/traefik.yml:ro"
