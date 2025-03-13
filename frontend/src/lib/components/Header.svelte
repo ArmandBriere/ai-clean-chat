@@ -2,7 +2,7 @@
   import Image from '@/lib/components/Image.svelte';
   import logo1 from '$lib/assets/logo/osedea-logo.png';
   import logo2 from '$lib/assets/logo/X.png';
-  import logo3 from '$lib/assets/logo/confoo-logo.png';
+  import logo3 from '$lib/assets/logo/ai-tinkerer-logo.png';
   import avatar from '$lib/assets/avatar.jpeg';
 </script>
 
@@ -14,7 +14,7 @@
       <div class="flex items-center space-x-4">
         <Image src={logo1} alt="logo" class="w-full object-contain" />
         <Image src={logo2} alt="logo" class="w-full object-contain" />
-        <Image src={logo3} alt="logo" class="w-3/4 object-contain" />
+        <Image src={logo3} alt="logo" class="w-1/4 object-contain" />
       </div>
     </a>
     <!-- right nav -->

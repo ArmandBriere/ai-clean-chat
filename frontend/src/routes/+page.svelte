@@ -67,14 +67,11 @@
   <div class="flex flex-grow">
     <div class="grid-[1fr] m-auto grid w-full max-w-2xl justify-center text-center">
       <h1 class="mb-8 text-2xl"
-        >AI-Powered Clean Talk:<br />Advanced Profanity Detection Patterns</h1
+        >Google Meet with Profanity<br /></h1
       >
       <div class="mb-8">
         <p>
-          Advanced profanity detection goes beyond simple keyword searches. This session will cover
-          data collection and training of a profanity detection model, and its integration with live
-          Speech-to-Text AI technologies. We will also look at the challenges around handling live
-          data.
+          F*ck yeah
         </p>
       </div>
       <div class="flex w-full justify-center space-x-4">
